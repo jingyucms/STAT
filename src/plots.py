@@ -24,6 +24,7 @@ import subprocess
 import tempfile
 import warnings
 
+import joblib
 import h5py
 import hsluv
 import numpy as np
@@ -316,7 +317,7 @@ def _observables(posterior=False):
         alpha_val = 0.3
 
     if len(systems)==1 & len(plots)==1:
-       axes = np.array(axes) 
+       axes = np.array(axes)
 
     for (plot, system), ax in zip(
             itertools.product(plots, systems), axes.flat
