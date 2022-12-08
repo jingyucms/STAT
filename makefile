@@ -10,7 +10,43 @@ RunHoldoutTest22: SetupHoldoutTest22 RunSequence
 RunHoldoutTest64: SetupHoldoutTest64 RunSequence
 
 SetupBaseline:
-	python3 SetupAnalysis.py --Config yaml/Exponential20221012RBF_N10.yaml
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012RBF_N5.yaml
+	python3 MakeCovarianceMatrixPlot.py
+	python3 MakeDesignObservablePlot.py
+	python3 MakeDesignSpacePlot.py
+
+SetupTestAnalysis:
+	python3 SetupAnalysis.py --Config yaml/TestAnalysis.yaml
+	python3 MakeCovarianceMatrixPlot.py
+	python3 MakeDesignObservablePlot.py
+	python3 MakeDesignSpacePlot.py
+
+SetupHadronOnly:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012Matern_HadronOnly.yaml
+	python3 MakeCovarianceMatrixPlot.py
+	python3 MakeDesignObservablePlot.py
+	python3 MakeDesignSpacePlot.py
+
+SetupHadronOnlyDefaultSys:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012Matern_HadronOnlyDefaultSys.yaml
+	python3 MakeCovarianceMatrixPlot.py
+	python3 MakeDesignObservablePlot.py
+	python3 MakeDesignSpacePlot.py
+
+SetupHadronOnlyFullyCorrelated:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012Matern_HadronOnlyDefaultSys.yaml --DefaultSysLength 9999 --TagSuffix FullyCorrelated
+	python3 MakeCovarianceMatrixPlot.py
+	python3 MakeDesignObservablePlot.py
+	python3 MakeDesignSpacePlot.py
+
+SetupHadronOnlyNonCorrelated:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012Matern_HadronOnlyDefaultSys.yaml --DefaultSysLength 0 --TagSuffix NonCorrelated
+	python3 MakeCovarianceMatrixPlot.py
+	python3 MakeDesignObservablePlot.py
+	python3 MakeDesignSpacePlot.py
+
+SetupHadronOnlyFirst60:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012RBF_HadronOnlyFirst60.yaml
 	python3 MakeCovarianceMatrixPlot.py
 	python3 MakeDesignObservablePlot.py
 	python3 MakeDesignSpacePlot.py

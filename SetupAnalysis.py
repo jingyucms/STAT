@@ -20,6 +20,8 @@ parser.add_argument("--Holdout", help = "Holdout test", default = -1, type = int
 parser.add_argument("--CentralityMin", help = "Centrality range", default = -1, type = int)
 parser.add_argument("--CentralityMax", help = "Centrality range", default = -1, type = int)
 parser.add_argument("--DoSmoothing", help = "Switch to smooth predictions", action = "store_true")
+parser.add_argument("--DefaultSysLength", help = "default correlation length", default = 0.1, type = float)
+parser.add_argument("--TagSuffix", help = "Suffix to add to the tag", default = "", type = str)
 args = parser.parse_args()
 
 ###################################################
@@ -37,6 +39,8 @@ with open(ConfigFile, "r") as stream:
         exit()
 
 Tag = Setup["Tag"]
+if args.TagSuffix != '':
+    Tag = Tag + "_" + args.TagSuffix
 
 if args.CentralityMin >= 0:
     Setup['Data'] = {k: v for k, v in Setup['Data'].items() if v['Attribute']['CentralityMin'] >= args.CentralityMin}
@@ -49,7 +53,11 @@ DataList = list(Setup['Data'].keys())
 for Item in DataList:
     RawData[Item] = Reader.ReadData(Setup['BaseDirectory'] + Setup['Data'][Item]['Data'])
     RawPrediction[Item] = Reader.ReadPrediction(Setup['BaseDirectory'] + Setup['Data'][Item]['Prediction'])
-    RawPredictionError[Item] = Reader.ReadPrediction(Setup['BaseDirectory'] + Setup['Data'][Item]['PredictionError'])
+    if 'PredictionError' in Setup['Data'][Item]:
+        RawPredictionError[Item] = Reader.ReadPrediction(Setup['BaseDirectory'] + Setup['Data'][Item]['PredictionError'])
+    else:
+        RawPredictionError[Item] = Reader.ReadPrediction(Setup['BaseDirectory'] + Setup['Data'][Item]['Prediction'])
+        RawPredictionError[Item]['Prediction'][:,:] = -1
 
 RawDesign = Reader.ReadDesign(Setup['BaseDirectory'] + Setup['Design']['File'])
 for I in Setup['Design']['LogScale']:
@@ -326,7 +334,7 @@ for Item in DataList:
 # Covariance matrices - the indices are [system][measurement1][measurement2], each one is a block of matrix
 Covariance = Reader.InitializeCovariance(Data)
 for Item in DataList:
-    SysLength = {"default": 0.10}
+    SysLength = {"default": args.DefaultSysLength}
     if "Correlation" in Setup["Data"][Item]:
         for key, value in Setup["Data"][Item]["Correlation"].items():
             SysLength[key+",high"] = value
