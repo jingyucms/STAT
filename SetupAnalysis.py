@@ -381,6 +381,10 @@ if args.Holdout in DesignIndex:
 with open('input/default.p', 'wb') as handle:
     pickle.dump(AllData, handle, protocol = pickle.HIGHEST_PROTOCOL)
 
+# Also make a backup for future loading
+import shutil
+shutil.copyfile('input/default.p', 'result/{}/'.format(AllData['tag']))
+
 
 #######################
 # Make result folders #
@@ -403,5 +407,6 @@ for Item in DataList:
         print('Number of design points in ' + Item + ' is ' + str(PredictionDimension[0]))
     if PredictionDimension[1] != DataCount:
         print('Number of data points in ' + Item + ' is ' + str(DataCount) + ', but prediction has ' + str(PredictionDimension[1]))
+
 
 

@@ -11,3 +11,5 @@ subprocess.call(['python3', '-m', 'src.emulator',
                  '--nu', str(AllData['emulator']['nu'] if 'nu' in AllData['emulator'] else 1.5),
                  '--nrestarts', str(AllData['emulator']['retrain'])])
 
+import shutil
+shutil.copyfile('cache/emulator/HeavyIon.pkl', 'result/{}/'.format(AllData['tag']))
