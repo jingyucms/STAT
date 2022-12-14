@@ -16,7 +16,10 @@ with open('input/default.p', 'rb') as handle:
 
 NDimension = len(AllData["labels"])
 Ranges = np.array(AllData["ranges"]).T
-figure, axes = plt.subplots(figsize = (3 * NDimension, 3 * NDimension), ncols = NDimension, nrows = NDimension)
+# figure, axes = plt.subplots(figsize = (3 * NDimension, 3 * NDimension), ncols = NDimension, nrows = NDimension)
+figure = plt.figure(figsize = (1.5 * (NDimension), 1.5 * (NDimension)))
+gridspec = figure.add_gridspec(NDimension, NDimension, hspace = 0, wspace = 0)
+axes = gridspec.subplots(sharex = 'col')
 Names = AllData["labels"]
 
 Truth = np.full(NDimension, -999)
@@ -31,6 +34,7 @@ for i, row in enumerate(axes):
             ax.axvline(x = Truth[i], ymin = 0, color='red', linestyle='dotted', linewidth=5)
             ax.set_xlabel(Names[i])
             ax.set_xlim(*Ranges[:,j])
+            ax.label_outer()
         if i>j:
             ax.hist2d(MCMCSamples[:, j], MCMCSamples[:, i],
                       bins=50, range=[Ranges[:,j], Ranges[:,i]],
@@ -40,6 +44,7 @@ for i, row in enumerate(axes):
             ax.set_ylabel(Names[i])
             ax.set_xlim(*Ranges[:,j])
             ax.set_ylim(*Ranges[:,i])
+            ax.label_outer()
         if i<j:
             ax.axis('off')
 plt.tight_layout()
