@@ -13,7 +13,7 @@ N = len(DataList)
 RC = int(np.sqrt(N))
 CC = int(np.ceil(N / RC))
 
-figure, axes = plt.subplots(figsize = (3 * RC, 3 * CC), nrows = RC, ncols = CC)
+figure, axes = plt.subplots(figsize = (3 * CC, 3 * RC), nrows = RC, ncols = CC)
 
 for I, Item in enumerate(DataList):
     ax = I % RC
@@ -27,7 +27,14 @@ for I, Item in enumerate(DataList):
     if Cov.any() != None:
         axes[ax][ay].imshow(Cov, vmin = 0)
 
+for I in range(len(DataList), RC * CC):
+    ax = I % RC
+    ay = int(np.floor(I / RC))
+    axes[ax][ay].axis('off')
+
 plt.tight_layout()
 tag = AllData['tag']
 figure.savefig(f'result/{tag}/plots/DiagonalCovariance.pdf', dpi = 192)
+
+
 
