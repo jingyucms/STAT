@@ -7,7 +7,12 @@ AllData = {}
 with open('input/default.p', 'rb') as handle:
     AllData = pickle.load(handle)
 
-TempPrediction = AllData["model"]
+from src import lazydict, emulator
+Emulator = emulator.Emulator.from_cache('HeavyIon')
+
+Examples = AllData["design"]
+
+TempPrediction = {"HeavyIon": Emulator.predict(Examples)}
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -47,7 +52,7 @@ def MakePlot(ToPlot, Suffix, Label, Common):
         DY = AllData["data"][S1][O][S2]['y']
         DE = np.sqrt(AllData["data"][S1][O][S2]['yerr']['stat'][:,0]**2 + AllData["data"][S1][O][S2]['yerr']['sys'][:,0]**2)
 
-        for j, y in enumerate(TempPrediction[S1][O][S2]['Y']):
+        for j, y in enumerate(TempPrediction[S1][O][S2]):
             if len(DX) > 1:
                 ax.plot(DX, y, 'b-', alpha=0.2)
             else:
@@ -66,7 +71,7 @@ def MakePlot(ToPlot, Suffix, Label, Common):
 
     plt.tight_layout()
     tag = AllData['tag']
-    figure.savefig(f'result/{tag}/plots/SmallObservableRawDesign{Suffix}.pdf', dpi = 192)
+    figure.savefig(f'result/{tag}/plots/SmallObservableDesign{Suffix}.pdf', dpi = 192)
     plt.close('all')
 
 
@@ -79,5 +84,10 @@ with open(args.Config, 'r') as stream:
 
 for item in setup['ObservablePlot']:
     MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'])
+
+
+
+
+
 
 
