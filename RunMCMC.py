@@ -12,4 +12,4 @@ subprocess.call(['python3', '-m', 'src.mcmc',
                  '--nburnsteps', str(AllData['mcmc']['burn']), str(AllData['mcmc']['step'])])
 
 import shutil
-shutil.copyfile('cache/mcmc_chain.hdf', 'result/{}/'.format(AllData['tag']))
+shutil.copyfile('cache/mcmc_chain.hdf', 'result/{}/mcmc_chain.hdf'.format(AllData['tag']))

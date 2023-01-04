@@ -12,4 +12,4 @@ subprocess.call(['python3', '-m', 'src.emulator',
                  '--nrestarts', str(AllData['emulator']['retrain'])])
 
 import shutil
-shutil.copyfile('cache/emulator/HeavyIon.pkl', 'result/{}/'.format(AllData['tag']))
+shutil.copyfile('cache/emulator/HeavyIon.pkl', 'result/{}/HeavyIon.pkl'.format(AllData['tag']))

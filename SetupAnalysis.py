@@ -382,8 +382,9 @@ with open('input/default.p', 'wb') as handle:
     pickle.dump(AllData, handle, protocol = pickle.HIGHEST_PROTOCOL)
 
 # Also make a backup for future loading
+Path('result/' + AllData["tag"] + '/').mkdir(parents = True, exist_ok = True)
 import shutil
-shutil.copyfile('input/default.p', 'result/{}/'.format(AllData['tag']))
+shutil.copyfile('input/default.p', 'result/{}/default.p'.format(AllData['tag']))
 
 
 #######################
