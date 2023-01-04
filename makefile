@@ -51,7 +51,7 @@ SetupHoldoutTest64:
 RunSequence: RunSequencePart0 RunSequencePart1 RunSequencePart2
 
 RunSequencePart0:
-	python3 MakeCovarianceMatrixPlot.py
+	python3 MakeSmallCovarianceMatrixPlot.py
 	python3 MakeSmallDesignObservablePlot.py
 	python3 MakeDesignSpacePlot.py
 
