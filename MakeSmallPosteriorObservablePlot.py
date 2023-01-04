@@ -20,11 +20,10 @@ Examples = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 500), :]
 
 TempPrediction = {"HeavyIon": Emulator.predict(Examples)}
 
-# import argparse
-# parser = argparse.ArgumentParser()
-# parser.add_argument("--ToPlot", help = "which ones to plot", type = str, nargs = "+")
-# parser.add_argument("--Suffix", help = "suffix to add to the file name", type = str, default = "")
-# args = parser.parse_args()
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--Config", help = "plot configuration file", type = str, default = "yaml/PlotConfig.yaml")
+args = parser.parse_args()
 
 def MakePlot(ToPlot, Suffix, Label, Common):
     # Let's not remove things silently.  We should let fails fail for this
@@ -82,7 +81,7 @@ def MakePlot(ToPlot, Suffix, Label, Common):
     plt.close('all')
 
 
-with open('yaml/PlotConfig.yaml', 'r') as stream:
+with open(args.Config, 'r') as stream:
     try:
         setup = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
