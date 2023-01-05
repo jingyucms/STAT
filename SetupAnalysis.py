@@ -139,6 +139,9 @@ for Item in DataList:
             RawPredictionError[Item]['Prediction'][i,:] = [(9999 if x == 0 else x) for x in RawPredictionError[Item]['Prediction'][i,:]]
 
 
+# Now build the Good for PCA list if desired
+GoodForPCA = []
+
 # Add NPC to check in the check list if it is enabled
 if 'PCACheck' in Setup['Emulator']:
     if Setup['Emulator']['NPC'] not in Setup['Emulator']['PCACheck']:
@@ -344,6 +347,8 @@ for Item in DataList:
 AllData["design"] = RawDesign["Design"]
 AllData['designindex'] = DesignIndex
 AllData['designexcluded'] = ListToDelete
+AllData['goodforpca'] = GoodForPCA   # index in the surviving point list
+AllData['indexforpca'] = [DesignIndex[i] for i in GoodForPCA]   # original index
 AllData["model"] = Prediction
 AllData["data"] = Data
 AllData["cov"] = Covariance

@@ -93,6 +93,11 @@ class Emulator:
         self.pca = PCA(copy=False, whiten=True, svd_solver='full')
 
         PCAIndex = range(Y.shape[0])
+        with open('input/default.p', 'rb') as handle:
+            AllData = pickle.load(handle)
+            if 'goodforpca' in AllData and len(AllData['goodforpca']) > 0:
+                PCAIndex = AllData['goodforpca']
+
         # PCAIndex = range(int(Y.shape[0] / 2))
         PCAY = np.array([Y[i] for i in PCAIndex])
 
