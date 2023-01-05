@@ -138,9 +138,10 @@ for Item in DataList:
             print(f"Warning: prediction error for {Item} and design point {I} contains 0.000's");
             RawPredictionError[Item]['Prediction'][i,:] = [(9999 if x == 0 else x) for x in RawPredictionError[Item]['Prediction'][i,:]]
 
-
 # Now build the Good for PCA list if desired
 GoodForPCA = []
+if 'GoodForPCA' in Setup["Design"]:
+    GoodForPCA = [np.where(DesignIndex == i)[0][0] for i in Setup['Design']['GoodForPCA'] if i in DesignIndex]
 
 # Add NPC to check in the check list if it is enabled
 if 'PCACheck' in Setup['Emulator']:

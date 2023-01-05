@@ -101,8 +101,8 @@ class Emulator:
         # PCAIndex = range(int(Y.shape[0] / 2))
         PCAY = np.array([Y[i] for i in PCAIndex])
 
-        # print(Y.shape)
-        # print(PCAY.shape)
+        print(Y.shape)
+        print(PCAY.shape)
 
         # Standardize observables and transform through PCA.  Use the first
         # `npc` components but save the full PC transformation for later.
