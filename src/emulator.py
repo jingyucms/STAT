@@ -92,9 +92,22 @@ class Emulator:
         self.scaler = StandardScaler(copy=False)
         self.pca = PCA(copy=False, whiten=True, svd_solver='full')
 
+        PCAIndex = range(Y.shape[0])
+        # PCAIndex = range(int(Y.shape[0] / 2))
+        PCAY = np.array([Y[i] for i in PCAIndex])
+
+        # print(Y.shape)
+        # print(PCAY.shape)
+
         # Standardize observables and transform through PCA.  Use the first
         # `npc` components but save the full PC transformation for later.
-        Z = self.pca.fit_transform(self.scaler.fit_transform(Y))[:, :npc]
+
+        # Do PCA fit with only ones usable for PCA
+        self.pca.fit_transform(self.scaler.fit_transform(PCAY))
+        # Do PCA transform with full Y
+        Z = self.pca.transform(self.scaler.transform(Y))[:, :npc]
+        # Do PCA fit+transform at once with full Y
+        # Z = self.pca.fit_transform(self.scaler.fit_transform(Y))[:, :npc]
 
         # Define kernel (covariance function):
         # Gaussian correlation (RBF) plus a noise term.
