@@ -138,10 +138,6 @@ for Item in DataList:
             print(f"Warning: prediction error for {Item} and design point {I} contains 0.000's");
             RawPredictionError[Item]['Prediction'][i,:] = [(9999 if x == 0 else x) for x in RawPredictionError[Item]['Prediction'][i,:]]
 
-# Now build the Good for PCA list if desired
-GoodForPCA = []
-if 'GoodForPCA' in Setup["Design"]:
-    GoodForPCA = [np.where(DesignIndex == i)[0][0] for i in Setup['Design']['GoodForPCA'] if i in DesignIndex]
 
 # Add NPC to check in the check list if it is enabled
 if 'PCACheck' in Setup['Emulator']:
@@ -273,6 +269,43 @@ if args.DoSmoothing == True:
             elif len(x) > 3:
                 RawPrediction[Item]['Prediction'][i,:] = non_uniform_savgol(x, y, 3, 1)
     Tag = Tag + "_Smoothed"
+
+
+# Now build the Good for PCA list if desired
+GoodForPCA = []
+if 'GoodForPCA' in Setup["Design"]:
+    GoodForPCA = [np.where(DesignIndex == i)[0][0] for i in Setup['Design']['GoodForPCA'] if i in DesignIndex]
+elif 'PoorManPCAPercentage' in Setup["Design"]:
+    # Code here is ugly but let's test if the idea itself works at least
+
+    # Calculate the metric for each design point
+    DesignPointMetric = {}
+    for i, I in enumerate(DesignIndex):
+        # DesignPointMetric[i] = np.sum(RawPredictionError[Item]['Prediction'][i,:])
+        # DesignPointMetric[i] = np.sum(RawPredictionError[Item]['Prediction'][i,:] / RawPrediction[Item]['Prediction'][i,:])
+        DesignPointMetric[i] = 0
+        for Item in DataList:
+            x = RawData[Item]["Data"]['x']
+            y = RawPrediction[Item]['Prediction'][i,:]
+            if len(x) > 7:
+                z = non_uniform_savgol(x, y, 7, 1)
+            elif len(x) > 5:
+                z = non_uniform_savgol(x, y, 5, 1)
+            elif len(x) > 3:
+                z = non_uniform_savgol(x, y, 3, 1)
+            else:   # there are not enough points to smooth things.
+                z = y
+
+            DesignPointMetric[i] = DesignPointMetric[i] + np.sum(((z - y))**2)
+
+    # Find the threshold
+    AllMetric = list(DesignPointMetric.values())
+    AllMetric.sort()
+    Location = int(len(AllMetric) * Setup['Design']['PoorManPCAPercentage'])
+    Threshold = AllMetric[Location]
+
+    # Get the list!
+    GoodForPCA = [i for i in range(len(DesignIndex)) if DesignPointMetric[i] <= Threshold]
 
 
 
