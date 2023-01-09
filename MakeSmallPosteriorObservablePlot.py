@@ -54,6 +54,17 @@ def MakePlot(ToPlot, Suffix, Label, Common):
         O  = AllData["observables"][0][0]
         S2 = ToPlot[i]
 
+        if i < len(Label):
+            ax.text(0.05, 0.95, Label[i],
+                verticalalignment='top', horizontalalignment='left',
+                transform = ax.transAxes, fontsize = 15)
+
+        ax.set_ylim([0, 1.2])
+        ax.label_outer()
+
+        if S2 not in AllData["data"][S1][O]:
+            continue
+
         DX = AllData["data"][S1][O][S2]['x']
         DY = AllData["data"][S1][O][S2]['y']
         DE = np.sqrt(AllData["data"][S1][O][S2]['yerr']['stat'][:,0]**2 + AllData["data"][S1][O][S2]['yerr']['sys'][:,0]**2)
@@ -64,14 +75,6 @@ def MakePlot(ToPlot, Suffix, Label, Common):
             else:
                 ax.plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.05)
         ax.errorbar(DX, DY, yerr = DE, fmt='ro', label="Measurements")
-
-        if i < len(Label):
-            ax.text(0.05, 0.95, Label[i],
-                verticalalignment='top', horizontalalignment='left',
-                transform = ax.transAxes, fontsize = 15)
-
-        ax.set_ylim([0, 1.2])
-        ax.label_outer()
 
     axes[0].set_title(Common, loc = 'left', fontsize = 15)
 

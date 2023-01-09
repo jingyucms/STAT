@@ -39,14 +39,17 @@ def MakePlot(ToPlot, Suffix, Label, Common):
         ax.set_xlabel(r"$p_{T}$ index", fontsize = 15)
         ax.set_ylabel("")
 
-        Cov = AllData["cov"]["HeavyIon"][("R_AA", ToPlot[i])][("R_AA", ToPlot[i])]
-        if Cov.any() != None:
-            ax.imshow(Cov, vmin = 0)
-
         if i < len(Label):
             ax.text(0.95, 0.95, Label[i],
                 verticalalignment='top', horizontalalignment='right',
                 transform = ax.transAxes, fontsize = 15, color='white')
+
+        if ToPlot[i] not in AllData["observables"][0][1]:
+            continue
+
+        Cov = AllData["cov"]["HeavyIon"][("R_AA", ToPlot[i])][("R_AA", ToPlot[i])]
+        if Cov.any() != None:
+            ax.imshow(Cov, vmin = 0)
 
         # ax.label_outer()
 
