@@ -19,6 +19,8 @@ parser.add_argument("--Config", help = "Config yaml file", default = "yaml/TestA
 parser.add_argument("--Holdout", help = "Holdout test", default = -1, type = int)
 parser.add_argument("--CentralityMin", help = "Centrality range", default = -1, type = int)
 parser.add_argument("--CentralityMax", help = "Centrality range", default = -1, type = int)
+parser.add_argument("--EnergyMin", help = "Energy range", default = -1, type = int)
+parser.add_argument("--EnergyMax", help = "Energy range", default = -1, type = int)
 parser.add_argument("--DoSmoothing", help = "Switch to smooth predictions", action = "store_true")
 parser.add_argument("--DefaultSysLength", help = "default correlation length", default = 0.1, type = float)
 parser.add_argument("--TagSuffix", help = "Suffix to add to the tag", default = "", type = str)
@@ -48,6 +50,12 @@ if args.CentralityMin >= 0:
 if args.CentralityMax >= 0:
     Setup['Data'] = {k: v for k, v in Setup['Data'].items() if v['Attribute']['CentralityMax'] <= args.CentralityMax}
     Tag = Tag + '_CentralityMax' + str(args.CentralityMax)
+if args.EnergyMin >= 0:
+    Setup['Data'] = {k: v for k, v in Setup['Data'].items() if v['Attribute']['Energy'] >= args.EnergyMin}
+    Tag = Tag + '_EnergyMin' + str(args.EnergyMin)
+if args.EnergyMax >= 0:
+    Setup['Data'] = {k: v for k, v in Setup['Data'].items() if v['Attribute']['Energy'] <= args.EnergyMax}
+    Tag = Tag + '_EnergyMax' + str(args.EnergyMax)
 
 DataList = list(Setup['Data'].keys())
 for Item in DataList:
