@@ -10,7 +10,19 @@ RunHoldoutTest22: SetupHoldoutTest22 RunSequence
 RunHoldoutTest64: SetupHoldoutTest64 RunSequence
 
 SetupBaseline:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012RBF_N15.yaml
+
+SetupBaselineN5:
 	python3 SetupAnalysis.py --Config yaml/Exponential20221012RBF_N5.yaml
+
+SetupBaselineN10:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012RBF_N10.yaml
+
+SetupBaselineGoodPCAN10:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012RBF_GoodPCAN10.yaml
+
+SetupBaselineN20:
+	python3 SetupAnalysis.py --Config yaml/Exponential20221012RBF_N20.yaml
 
 SetupBaselineMatern:
 	python3 SetupAnalysis.py --Config yaml/Exponential20221012Matern_N10.yaml
