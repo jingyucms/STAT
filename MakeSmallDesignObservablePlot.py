@@ -14,12 +14,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--Config", help = "plot configuration file", type = str, default = "yaml/PlotConfig.yaml")
 args = parser.parse_args()
 
-def MakePlot(ToPlot, Suffix, Label, Common):
+def MakePlot(ToPlot, Suffix, Label, Common, GoodPCAOnly):
     # Let's not remove things silently.  We should let fails fail for this
     # ToPlot = [x for x in ToPlot if x in AllData["observables"][0][1]]
 
     if Suffix != "":
         Suffix = "_" + Suffix
+
+    if GoodPCAOnly == True:
+        Suffix = Suffix + "_GoodPCA"
 
     if len(ToPlot) == 0:
         print("Nothing valid specified")
@@ -48,6 +51,9 @@ def MakePlot(ToPlot, Suffix, Label, Common):
         DE = np.sqrt(AllData["data"][S1][O][S2]['yerr']['stat'][:,0]**2 + AllData["data"][S1][O][S2]['yerr']['sys'][:,0]**2)
 
         for j, y in enumerate(TempPrediction[S1][O][S2]['Y']):
+            if GoodPCAOnly == True:
+                if (j not in AllData['goodforpca'] and len(AllData['goodforpca']) > 0):
+                    continue
             if len(DX) > 1:
                 ax.plot(DX, y, 'b-', alpha=0.2)
             else:
@@ -78,6 +84,7 @@ with open(args.Config, 'r') as stream:
         exit()
 
 for item in setup['ObservablePlot']:
-    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'])
+    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'], False)
+    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'], True)
 
 
