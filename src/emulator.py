@@ -15,6 +15,7 @@ and `Gaussian process regression
 
 import logging
 import pickle
+from pathlib import Path
 
 import numpy as np
 from sklearn.decomposition import PCA
@@ -101,8 +102,8 @@ class Emulator:
         # PCAIndex = range(int(Y.shape[0] / 2))
         PCAY = np.array([Y[i] for i in PCAIndex])
 
-        print(Y.shape)
-        print(PCAY.shape)
+        # print(Y.shape)
+        # print(PCAY.shape)
 
         # Standardize observables and transform through PCA.  Use the first
         # `npc` components but save the full PC transformation for later.
@@ -234,6 +235,32 @@ class Emulator:
 
         # Add small term to diagonal for numerical stability.
         self._cov_trunc.flat[::nobs + 1] += 1e-4 * self.scaler.var_
+
+    @classmethod
+    def from_cache_custom(cls, system, path, retrain=False, **kwargs):
+        """
+        Load the emulator for `system` from the cache if available, otherwise
+        train and cache a new instance.
+
+        """
+        cachefile = Path(path)
+
+        # cache the __dict__ rather than the Emulator instance itself
+        # this way the __name__ doesn't matter, e.g. a pickled
+        # __main__.Emulator can be unpickled as a src.emulator.Emulator
+        if not retrain and cachefile.exists():
+            logging.debug('loading emulator for system %s from cache', system)
+            emu = cls.__new__(cls)
+            emu.__dict__ = joblib.load(cachefile)
+            return emu
+
+        emu = cls(system, **kwargs)
+
+        logging.info('writing cache file %s', cachefile)
+        cachefile.parent.mkdir(exist_ok=True)
+        joblib.dump(emu.__dict__, cachefile, protocol=pickle.HIGHEST_PROTOCOL)
+
+        return emu
 
     @classmethod
     def from_cache(cls, system, retrain=False, **kwargs):
