@@ -24,6 +24,7 @@ parser.add_argument("--EnergyMax", help = "Energy range", default = -1, type = i
 parser.add_argument("--DoSmoothing", help = "Switch to smooth predictions", action = "store_true")
 parser.add_argument("--DefaultSysLength", help = "default correlation length", default = 0.1, type = float)
 parser.add_argument("--TagSuffix", help = "Suffix to add to the tag", default = "", type = str)
+parser.add_argument("--Observable", help = "which observable to use", default = "", type = str)
 args = parser.parse_args()
 
 ###################################################
@@ -56,6 +57,11 @@ if args.EnergyMin >= 0:
 if args.EnergyMax >= 0:
     Setup['Data'] = {k: v for k, v in Setup['Data'].items() if v['Attribute']['Energy'] <= args.EnergyMax}
     Tag = Tag + '_EnergyMax' + str(args.EnergyMax)
+if args.Observable != "":
+    Setup['Data'] = {k: v for k, v in Setup['Data'].items() if args.Observable in v['Attribute']['Observable']}
+    Tag = Tag + '_Observable' + args.Observable
+
+print(Setup['Data'].keys())
 
 DataList = list(Setup['Data'].keys())
 for Item in DataList:
@@ -94,6 +100,26 @@ def DeleteRawData(Raw, Items):
     for item in Raw["Data"]["yerr"]:
         Raw["Data"]["yerr"][item] = np.delete(Raw["Data"]["yerr"][item], Items, axis = 0)
 
+# First put in missing design points
+AllMissingPrediction = np.array([])
+for Item in DataList:
+    if 'PredictionMissing' in Setup['Data'][Item]:
+        RawPrediction[Item]['Prediction'] = InsertZeroDesign(RawPrediction[Item]['Prediction'], Setup['Data'][Item]['PredictionMissing'])
+        RawPredictionError[Item]['Prediction'] = InsertZeroDesign(RawPredictionError[Item]['Prediction'], Setup['Data'][Item]['PredictionMissing'])
+        AllMissingPrediction = np.append(AllMissingPrediction, Setup['Data'][Item]['PredictionMissing'])
+AllMissingPrediction = np.sort(AllMissingPrediction)
+AllMissingPrediction = np.unique(AllMissingPrediction)
+
+# Then we issue warning if some of them are found to have incompatible design point count
+FirstItemSize = -1
+for Item in DataList:
+    if FirstItemSize < 0:
+        FirstItemSize = RawPrediction[Item]['Prediction'].shape[0]
+    elif RawPrediction[Item]['Prediction'].shape[0] != FirstItemSize:
+        print(f'Warning: {Item} has wrong number of design points')
+    elif RawPredictionError[Item]['Prediction'].shape[0] != FirstItemSize:
+        print(f'Warning: {Item} has wrong number of design points for errors')
+
 # Clean up points
 for Item in DataList:
     if 'DataExclude' in Setup['Data'][Item]:
@@ -110,7 +136,6 @@ if 'DataCut' in Setup and 'MinPT' in Setup['DataCut']:
         RawPrediction[Item]['Prediction'] = np.delete(RawPrediction[Item]["Prediction"], range(0, DeleteCount), axis = 1)
         RawPredictionError[Item]['Prediction'] = np.delete(RawPredictionError[Item]["Prediction"], range(0, DeleteCount), axis = 1)
 
-
 # Delete prediction that are longer than available design points
 NDesign = RawDesign['Design'].shape[0]
 for Item in DataList:
@@ -121,9 +146,14 @@ for Item in DataList:
         ToDelete = RawPredictionError[Item]['Prediction'].shape[0] - NDesign
         RawPredictionError[Item]['Prediction'] = np.delete(RawPredictionError[Item]['Prediction'], range(NDesign, RawPredictionError[Item]['Prediction'].shape[0]), axis = 0)
 
-# Remove bad design points
+# Remove bad design points, including the padded ones that some files are missing
 InputDesignCount = RawDesign['Design'].shape[0]
-ListToDelete = [x for x in Setup['Design']['ListToDelete'] if x < InputDesignCount]
+ListToDelete = np.array([int(x) for x in Setup['Design']['ListToDelete'] if x < InputDesignCount])
+ListToDelete = np.append(ListToDelete, [x for x in AllMissingPrediction if x < InputDesignCount])
+ListToDelete = np.sort(ListToDelete)
+ListToDelete = np.unique(ListToDelete)
+ListToDelete = [int(x) for x in ListToDelete]
+print(ListToDelete)
 DesignIndex = np.delete(range(0, InputDesignCount), ListToDelete)
 
 if 'PoorManQALimit' in Setup['Design']:
