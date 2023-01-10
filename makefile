@@ -84,7 +84,7 @@ RunSequencePart2:
 	python3 MakeMCMCSamplingPlot.py
 	python3 MakePosteriorCorrelationPlot.py
 	python3 MakeSmallPosteriorObservablePlot.py
-	python3 WriteToText.py
-	python3 WritePosteriorToText.py
+	# python3 WriteToText.py
+	# python3 WritePosteriorToText.py
 
 
