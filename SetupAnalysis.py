@@ -61,7 +61,7 @@ if args.Observable != "":
     Setup['Data'] = {k: v for k, v in Setup['Data'].items() if args.Observable in v['Attribute']['Observable']}
     Tag = Tag + '_Observable' + args.Observable
 
-print(Setup['Data'].keys())
+# print(Setup['Data'].keys())
 
 DataList = list(Setup['Data'].keys())
 for Item in DataList:
@@ -153,7 +153,7 @@ ListToDelete = np.append(ListToDelete, [x for x in AllMissingPrediction if x < I
 ListToDelete = np.sort(ListToDelete)
 ListToDelete = np.unique(ListToDelete)
 ListToDelete = [int(x) for x in ListToDelete]
-print(ListToDelete)
+# print(ListToDelete)
 DesignIndex = np.delete(range(0, InputDesignCount), ListToDelete)
 
 if 'PoorManQALimit' in Setup['Design']:
