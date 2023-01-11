@@ -71,6 +71,7 @@ RunSequencePart1:
 	python3 CleanPastFiles.py
 	python3 RunEmulator.py
 	python3 MakePCAPercentagePlot.py
+	python3 MakePCAParameterPlot.py
 	python3 MakeSmallDesignPredictedObservablePlot.py
 
 RunExtraCheck:
