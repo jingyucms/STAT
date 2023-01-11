@@ -14,12 +14,17 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--Config", help = "plot configuration file", type = str, default = "yaml/PlotConfig.yaml")
 args = parser.parse_args()
 
-def MakePlot(ToPlot, Suffix, Label, Common):
+def MakePlot(ToPlot, Suffix, Label, Common, Correlation):
     # Let's not remove things silently.  We should let fails fail for this
     # ToPlot = [x for x in ToPlot if x in AllData["observables"][0][1]]
 
     if Suffix != "":
         Suffix = "_" + Suffix
+
+    if Correlation == True:
+        TypeString = "Correlation"
+    else:
+        TypeString = "Covariance"
 
     if len(ToPlot) == 0:
         print("Nothing valid specified")
@@ -49,6 +54,9 @@ def MakePlot(ToPlot, Suffix, Label, Common):
 
         Cov = AllData["cov"]["HeavyIon"][("R_AA", ToPlot[i])][("R_AA", ToPlot[i])]
         if Cov.any() != None:
+            if Correlation == True:
+                Diag = np.sqrt(np.diag(Cov))
+                Cov = Cov / Diag[:,None] / Diag[None,:]
             ax.imshow(Cov, vmin = 0)
 
         # ax.label_outer()
@@ -58,7 +66,7 @@ def MakePlot(ToPlot, Suffix, Label, Common):
 
     plt.tight_layout()
     tag = AllData['tag']
-    figure.savefig(f'result/{tag}/plots/SmallDiagonalCovariance{Suffix}.pdf', dpi = 192)
+    figure.savefig(f'result/{tag}/plots/SmallDiagonal{TypeString}{Suffix}.pdf', dpi = 192)
     plt.close('all')
 
 
@@ -70,6 +78,7 @@ with open(args.Config, 'r') as stream:
         exit()
 
 for item in setup['ObservablePlot']:
-    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'])
+    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'], True)
+    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'], False)
 
 
