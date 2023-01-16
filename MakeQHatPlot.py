@@ -30,7 +30,8 @@ def qhat(T=0, E=0, Q=0, parameters=None) -> float:
     model = "exponential"
     if model == "exponential":
         # Parameters
-        alpha_s_fix, Q0, C1, C2, tau_0, C3 = parameters
+        # alpha_s_fix, Q0, C1, C2, tau_0, C3 = parameters
+        alpha_s_fix = parameters[0]
         active_flavor = 3
 
         # Extracted from JetScapeConstants
@@ -58,7 +59,7 @@ def qhat(T=0, E=0, Q=0, parameters=None) -> float:
         #  C4=0,
         #)
 
-        return answer
+        return answer * 0.19732698   # 1/GeV to fm
 
 def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], Type = "", Suffix = ""):
 
