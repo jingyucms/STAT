@@ -17,7 +17,7 @@ Y = np.concatenate(Y, axis=1)
 
 Z = Emulator.pca.transform(Emulator.scaler.transform(Y))
 
-NDim = int(AllData['design'].shape[0] / 2)
+NDim = min(int(AllData['design'].shape[0] / 2), Z.shape[1])
 NPar = AllData['design'].shape[1]
 
 LinearCorrelation = np.zeros((NPar, NDim))
