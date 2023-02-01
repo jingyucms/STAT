@@ -66,6 +66,9 @@ if args.Observable != "":
 DataList = list(Setup['Data'].keys())
 for Item in DataList:
     RawData[Item] = Reader.ReadData(Setup['BaseDirectory'] + Setup['Data'][Item]['Data'])
+    RawData[Item]["Data"]["c"] = False   # Initialize c-factor switch to false
+    if 'CFactor' in Setup['Data'][Item] and Setup['Data'][Item]['CFactor'] == True:
+        RawData[Item]["Data"]["c"] = True
     RawPrediction[Item] = Reader.ReadPrediction(Setup['BaseDirectory'] + Setup['Data'][Item]['Prediction'])
     if 'PredictionError' in Setup['Data'][Item]:
         RawPredictionError[Item] = Reader.ReadPrediction(Setup['BaseDirectory'] + Setup['Data'][Item]['PredictionError'])
