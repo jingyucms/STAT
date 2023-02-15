@@ -25,6 +25,7 @@ parser.add_argument("--DoSmoothing", help = "Switch to smooth predictions", acti
 parser.add_argument("--DefaultSysLength", help = "default correlation length", default = 0.1, type = float)
 parser.add_argument("--TagSuffix", help = "Suffix to add to the tag", default = "", type = str)
 parser.add_argument("--Observable", help = "which observable to use", default = "", type = str)
+parser.add_argument("--Omit", help = "omit specific datasets", nargs = '+', type = str, default = [])
 args = parser.parse_args()
 
 ###################################################
@@ -63,7 +64,15 @@ if args.Observable != "":
 
 # print(Setup['Data'].keys())
 
-DataList = list(Setup['Data'].keys())
+FullDataList = list(Setup['Data'].keys())
+DataList = [Item for Item in FullDataList if Item not in args.Omit]
+RemovedList = [Item for Item in args.Omit if Item in FullDataList]
+
+if len(RemovedList) > 0:
+    Tag = Tag + '_Omit'
+    for Item in RemovedList:
+        Tag = Tag + '_' + Item
+
 for Item in DataList:
     RawData[Item] = Reader.ReadData(Setup['BaseDirectory'] + Setup['Data'][Item]['Data'])
     RawData[Item]["Data"]["c"] = False   # Initialize c-factor switch to false
