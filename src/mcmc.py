@@ -289,6 +289,7 @@ class Chain:
 
         self._slices = {}
         self._expt_y = {}
+        self._expt_c = {}
         self._expt_cov = {}
         self.observables = observables
         # pre-compute the experimental data vectors and covariance matrices
@@ -315,10 +316,13 @@ class Chain:
                     )
                     nobs += n
             self._expt_y[sys] = np.zeros(nobs)
+            self._expt_c[sys] = np.zeros(nobs)
             self._expt_cov[sys] = np.zeros((nobs, nobs))
 
             for obs1, subobs1, slc1 in self._slices[sys]:
                 self._expt_y[sys][slc1] = exp_data_list[sys][obs1][subobs1]['y']
+                if 'c' in exp_data_list[sys][obs1][subobs1]:
+                    self._expt_c[sys][slc1] = float(exp_data_list[sys][obs1][subobs1]['c'])
                 if exp_cov is None:
                     for obs2, subobs2, slc2 in self._slices[sys]:
                         self._expt_cov[sys][slc1, slc2] = cov(
@@ -408,7 +412,7 @@ class Chain:
                 # print(sys)
                 # print("Y", dY[:])
                 # print("Exp", self._expt_y[sys])
-                dY[:] = self._expt_y[sys] - dY[:]
+                dY[:] = self._expt_y[sys] * (1 + self.data_c_factor * self._expt_c[sys]) - dY[:]
                 # print("DY", dY[:])
 
                 # add expt cov to model cov
@@ -450,7 +454,13 @@ class Chain:
         """
         return f(args)
 
-    def run_mcmc(self, nsteps, nburnsteps=None, nwalkers=None, status=None, model_cov_modifier=None, model_cov_factor=None, likelihood_type=None):
+    def set_mcmc_variables(self, model_cov_modifier=1.00, model_cov_factor=1.00, likelihood_type=0, data_c_factor=0.00):
+        self.model_cov_modifier = model_cov_modifier
+        self.model_cov_factor = model_cov_factor
+        self.likelihood_type = likelihood_type
+        self.data_c_factor = data_c_factor
+
+    def run_mcmc(self, nsteps, nburnsteps=None, nwalkers=None, status=None, model_cov_modifier=None, model_cov_factor=None, likelihood_type=None, data_c_factor=0):
         """
         Run MCMC model calibration.  If the chain already exists, continue from
         the last point, otherwise burn-in and start the chain.
@@ -477,9 +487,10 @@ class Chain:
                 burn = False
                 nwalkers = dset.shape[0]
 
-            self.model_cov_modifier = model_cov_modifier
-            self.model_cov_factor = model_cov_factor
-            self.likelihood_type = likelihood_type
+            self.set_mcmc_variables(model_cov_modifier = model_cov_modifier,
+                model_cov_factor = model_cov_factor,
+                likelihood_type = likelihood_type,
+                data_c_factor = data_c_factor)
             sampler = LoggingEnsembleSampler(
                 nwalkers, self.ndim, self.log_posterior, pool=self
             )
@@ -625,6 +636,10 @@ def main():
     parser.add_argument(
         '--likelihood_type', type=int, default=0,
         help='type of likelihood.  0 = mvn, 1 = d^2, 2 = chi^2, 3 = chi^2 with correlated error'
+    )
+    parser.add_argument(
+        '--data_c_factor', type=float, default=0.00,
+        help='multiplicative factor for selected data points'
     )
 
     Chain().run_mcmc(**vars(parser.parse_args()))
