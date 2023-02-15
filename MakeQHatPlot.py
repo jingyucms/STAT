@@ -126,6 +126,8 @@ Posterior = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 2500), :]
 
 PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E100")
 PlotQHat(T = 0.3, E = 100, Q = 100, Scan = 'E', P = Posterior, Type = "Posterior", Suffix = "Posterior_E_T0.3")
+PlotQHat(T = 0.2, E = 20,  Q = 20,  Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E20")
+PlotQHat(T = 0.2, E = 10,  Q = 10,  Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E10")
 
 Design = AllData["design"]
 
