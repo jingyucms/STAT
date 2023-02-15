@@ -92,6 +92,8 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
 
     figure, axes = plt.subplots(figsize = (5, 5))
 
+    AllY = []
+
     NSample = P.shape[0]
     for i in range(NSample):
         if Scan == 'T':
@@ -109,6 +111,8 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
         else:
             print('Error!  Illegal scan variable')
 
+        AllY.append(Y)
+
         axes.plot(X, Y, 'b', alpha = 50 / NSample)
 
     axes.text(0.95, 0.95, ExtraText, transform = axes.transAxes, ha = 'right', va = 'top')
@@ -121,8 +125,38 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
     tag = AllData['tag']
     figure.savefig(f'result/{tag}/plots/QHat{Suffix}.pdf', dpi = 192)
 
+    AllY = np.array(AllY)
 
-Posterior = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 2500), :]
+    Y05 = []
+    Y50 = []
+    Y95 = []
+
+    for i in range(0, AllY.shape[1]):
+        Y = np.sort(AllY[:,i])
+        Y05.append(Y[int(Y.shape[0]*0.05)])
+        Y50.append(Y[int(Y.shape[0]*0.50)])
+        Y95.append(Y[int(Y.shape[0]*0.95)])
+
+    figure, axes = plt.subplots(figsize = (5, 5))
+
+    axes.plot(X, Y05, 'b-')
+    axes.plot(X, Y50, 'b.')
+    axes.plot(X, Y95, 'b-')
+
+    axes.text(0.95, 0.95, ExtraText, transform = axes.transAxes, ha = 'right', va = 'top')
+    axes.text(0.95, 0.90, Type, transform = axes.transAxes, ha = 'right', va = 'top')
+    axes.text(0.95, 0.85, 'Median and 90% range', transform = axes.transAxes, ha = 'right', va = 'top')
+
+    axes.set_xlabel(XLabel)
+    axes.set_ylabel(r'$\hat{q}/T^3$')
+
+    plt.tight_layout()
+    tag = AllData['tag']
+    figure.savefig(f'result/{tag}/plots/QHatRange{Suffix}.pdf', dpi = 192)
+
+
+
+Posterior = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 5000), :]
 
 PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E100")
 PlotQHat(T = 0.3, E = 100, Q = 100, Scan = 'E', P = Posterior, Type = "Posterior", Suffix = "Posterior_E_T0.3")
