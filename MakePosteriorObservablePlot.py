@@ -6,19 +6,38 @@ AllData = {}
 with open('input/default.p', 'rb') as handle:
     AllData = pickle.load(handle)
 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--Alternate", help = "whether to plot a second collection", type = str, default = '')
+parser.add_argument('--AlternateLabel', help = 'label for alternate collection', type = str, default = '')
+parser.add_argument('--Suffix', help = 'suffix to add to file name', type = str, default = '')
+args = parser.parse_args()
+
+DoAlternate = False
+if args.Alternate != '':
+    DoAlternate = True
+
+if args.Suffix != '':
+    args.Suffix = '_' + args.Suffix
+
 import src
 src.Initialize()
-from src import mcmc
-chain = mcmc.Chain()
-MCMCSamples = chain.load()
 
 from src import lazydict, emulator
 Emulator = emulator.Emulator.from_cache('HeavyIon')
 
+from src import mcmc
+chain = mcmc.Chain()
+MCMCSamples = chain.load()
 
 Examples = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 500), :]
-
 TempPrediction = {"HeavyIon": Emulator.predict(Examples)}
+
+if DoAlternate == True:
+    chain = mcmc.chain(path = Path(f'result/{args.Alternate}/mcmc_chain.hdf'))
+    MCMCSamples2 = chain.load()
+    Examples2 = MCMCSamples2[ np.random.choice(range(len(MCMCSamples2)), 500), :]
+    TempPrediction2 = {"HeavyIon": Emulator.predict(Examples2)}
 
 SystemCount = len(AllData["systems"])
 BinCount = len(AllData['observables'][0][1])
@@ -46,10 +65,15 @@ for s2 in range(0, BinCount):
     axes[ax][ay].set_xscale('log')
 
     for i, y in enumerate(TempPrediction[S1][O][S2]):
-        axes[ax][ay].plot(DX, y, 'b-', alpha=0.05, label="Posterior" if i==0 else '')
+        axes[ax][ay].plot(DX, y, 'b-', alpha=0.05, label="Nominal" if i==0 else '')
+    if DoAlternate == True:
+        for i, y in enumerate(TempPrediction2[S1][O][S2]):
+            axes[ax][ay].plot(DX, y, 'g-', alpha=0.05, label=args.AlternateLabel if i==0 else '')
     axes[ax][ay].errorbar(DX, DY, yerr = DE, fmt='ro', label="Measurements")
 
 plt.tight_layout()
 tag = AllData['tag']
-figure.savefig(f'result/{tag}/plots/ObservablePosterior.pdf', dpi = 192)
+figure.savefig(f'result/{tag}/plots/ObservablePosterior{args.Suffix}.pdf', dpi = 192)
 # figure.savefig(f'result/{tag}/plots/ObservablePosterior.png', dpi = 192)
+
+
