@@ -148,6 +148,13 @@ if 'DataCut' in Setup and 'MinPT' in Setup['DataCut']:
         RawPrediction[Item]['Prediction'] = np.delete(RawPrediction[Item]["Prediction"], range(0, DeleteCount), axis = 1)
         RawPredictionError[Item]['Prediction'] = np.delete(RawPredictionError[Item]["Prediction"], range(0, DeleteCount), axis = 1)
 
+# If some items do not survive the low energy cut, remove them from the list
+EmptyList = []
+for Item in DataList:
+    if len(RawData[Item]['Data']['x']) == 0:   # nothing survives!
+        EmptyList.append(Item)
+DataList = [Item for Item in DataList if Item not in EmptyList]
+
 # Delete prediction that are longer than available design points
 NDesign = RawDesign['Design'].shape[0]
 for Item in DataList:
