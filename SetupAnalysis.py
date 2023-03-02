@@ -140,7 +140,7 @@ for Item in DataList:
         RawPrediction[Item]["Prediction"] = np.delete(RawPrediction[Item]["Prediction"], Setup['Data'][Item]['PredictionExclude'], axis = 1)
         RawPredictionError[Item]["Prediction"] = np.delete(RawPredictionError[Item]["Prediction"], Setup['Data'][Item]['PredictionExclude'], axis = 1)
 
-# Clean up low energy points
+# Clean up low/high energy points
 if 'DataCut' in Setup and 'MinPT' in Setup['DataCut']:
     for Item in DataList:
         DeleteCount = sum(i < Setup['DataCut']['MinPT'] for i in RawData[Item]["Data"]["x"])
@@ -148,7 +148,15 @@ if 'DataCut' in Setup and 'MinPT' in Setup['DataCut']:
         RawPrediction[Item]['Prediction'] = np.delete(RawPrediction[Item]["Prediction"], range(0, DeleteCount), axis = 1)
         RawPredictionError[Item]['Prediction'] = np.delete(RawPredictionError[Item]["Prediction"], range(0, DeleteCount), axis = 1)
 
-# If some items do not survive the low energy cut, remove them from the list
+if 'DataCut' in Setup and 'MaxPT' in Setup['DataCut']:
+    for Item in DataList:
+        DeleteCount = sum(i < Setup['DataCut']['MaxPT'] for i in RawData[Item]["Data"]["x"])
+        Size = len(RawData[Item]["Data"]["x"])
+        DeleteRawData(RawData[Item], range(Size - DeleteCount, Size))
+        RawPrediction[Item]['Prediction'] = np.delete(RawPrediction[Item]["Prediction"], range(Size - DeleteCount, Size), axis = 1)
+        RawPredictionError[Item]['Prediction'] = np.delete(RawPredictionError[Item]["Prediction"], range(Size - DeleteCount, Size), axis = 1)
+
+# If some items do not survive the low/high energy cut, remove them from the list
 EmptyList = []
 for Item in DataList:
     if len(RawData[Item]['Data']['x']) == 0:   # nothing survives!
