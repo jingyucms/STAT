@@ -28,6 +28,11 @@ parser.add_argument("--Observable", help = "which observable to use", default = 
 parser.add_argument("--Omit", help = "omit specific datasets", nargs = '+', type = str, default = [])
 args = parser.parse_args()
 
+
+print("")
+print(f"Setting up new analysis with config {args.Config}")
+print("")
+
 ###################################################
 # Part 1: read raw data and prediction and design #
 ###################################################
