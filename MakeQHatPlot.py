@@ -61,7 +61,7 @@ def qhat(T=0, E=0, Q=0, parameters=None) -> float:
 
         return answer * 0.19732698   # 1/GeV to fm
 
-def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], Type = "", Suffix = ""):
+def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], Type = "", Suffix = "", DoJet = False):
 
     if Suffix != "":
         Suffix = "_" + Suffix
@@ -72,7 +72,7 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
     ExtraText = ""
 
     if Scan == 'T':
-        X = np.arange(0.17, 0.45, 0.01)
+        X = np.arange(0.16, 0.52, 0.01)
         XLabel = "T"
         ExtraText = f"E = {E} GeV"
     elif Scan == 'E':
@@ -114,6 +114,20 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
         AllY.append(Y)
 
         axes.plot(X, Y, 'b', alpha = 50 / NSample)
+
+    if DoJet == True:
+        JetBox1X = [0.170, 0.170, 0.386, 0.386, 0.170]
+        JetBox1Y = [3.4, 5.8, 5.8, 3.4, 3.4]
+        JetBox2X = [0.340, 0.340, 0.486, 0.486, 0.340]
+        JetBox2Y = [2.3, 5.1, 5.1, 2.3, 2.3]
+        JetPointX = [0.365, 0.460]
+        JetPointY = [4.6, 3.7]
+        JetErrorY = [1.2, 1.4]
+
+        axes.plot(JetBox1X, JetBox1Y, 'k-.')
+        axes.plot(JetBox2X, JetBox2Y, 'k-.')
+        axes.errorbar(JetPointX, JetPointY, fmt = 'ko', yerr = JetErrorY, label = "JET Collaboration")
+        axes.legend(loc = "lower left")
 
     axes.text(0.95, 0.95, ExtraText, transform = axes.transAxes, ha = 'right', va = 'top')
     axes.text(0.95, 0.90, Type, transform = axes.transAxes, ha = 'right', va = 'top')
@@ -159,6 +173,7 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
 Posterior = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 5000), :]
 
 PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E100")
+PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E100_Jet", DoJet = True)
 PlotQHat(T = 0.3, E = 100, Q = 100, Scan = 'E', P = Posterior, Type = "Posterior", Suffix = "Posterior_E_T0.3")
 PlotQHat(T = 0.2, E = 20,  Q = 20,  Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E20")
 PlotQHat(T = 0.2, E = 10,  Q = 10,  Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E10")
