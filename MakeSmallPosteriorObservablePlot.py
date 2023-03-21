@@ -92,11 +92,12 @@ def MakePlot(ToPlot, Suffix, Label, Common):
                     ax.plot(DX, y, 'g-', alpha=0.05, label = args.AlternateLabel if j == 0 else '')
                 else:
                     ax.plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'g-', alpha=0.05, label = args.AlternateLabel if j == 0 else '')
-        for j, y in enumerate(TempPrediction[S1][O][S2]):
-            if len(DX) > 1:
-                ax.plot(DX, y, 'b-', alpha=0.025, label = 'Nominal' if j == 0 else '')
-            else:
-                ax.plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.025, label = 'Nominal' if j == 0 else '')
+        else:
+            for j, y in enumerate(TempPrediction[S1][O][S2]):
+                if len(DX) > 1:
+                    ax.plot(DX, y, 'b-', alpha=0.025, label = 'Nominal' if j == 0 else '')
+                else:
+                    ax.plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.025, label = 'Nominal' if j == 0 else '')
         ax.errorbar(DX, DY, yerr = DE, fmt='ro')
 
     axes[0].set_title(Common, loc = 'left', fontsize = 15)
