@@ -47,11 +47,15 @@ CC = int(np.ceil(BinCount / RC))
 
 figure, axes = plt.subplots(figsize = (3 * CC, 3 * RC), nrows = RC, ncols = CC)
 
-for s2 in range(0, BinCount):
+for s2 in range(0, RC * CC):
     ax = s2 % RC
     ay = int(np.floor(s2 / RC))
     axes[ax][ay].set_xlabel(r"$p_{T}$")
     axes[ax][ay].set_ylabel(r"$R_{AA}$")
+
+    if s2 >= BinCount:
+        axes[ax][ay].axis('off')
+        continue
 
     S1 = AllData["systems"][0]
     O  = AllData["observables"][0][0]
@@ -62,13 +66,24 @@ for s2 in range(0, BinCount):
     DE = np.sqrt(AllData["data"][S1][O][S2]['yerr']['stat'][:,0]**2 + AllData["data"][S1][O][S2]['yerr']['sys'][:,0]**2)
 
     axes[ax][ay].set_title(AllData["observables"][0][1][s2])
-    axes[ax][ay].set_xscale('log')
+    # axes[ax][ay].set_xscale('log')
+    axes[ax][ay].set_ylim(0, 1.2)
+    if len(DX) > 1:
+        axes[ax][ay].plot([DX[0], DX[-1]], [1, 1], 'k-.')
+    else:
+        axes[ax][ay].plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [1, 1], 'k-.')
 
     for i, y in enumerate(TempPrediction[S1][O][S2]):
-        axes[ax][ay].plot(DX, y, 'b-', alpha=0.05, label="Nominal" if i==0 else '')
+        if len(DX) > 1:
+            axes[ax][ay].plot(DX, y, 'b-', alpha=0.05, label="Nominal" if i==0 else '')
+        else:
+            axes[ax][ay].plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.025, label = 'Nominal' if i == 0 else '')
     if DoAlternate == True:
         for i, y in enumerate(TempPrediction2[S1][O][S2]):
-            axes[ax][ay].plot(DX, y, 'g-', alpha=0.05, label=args.AlternateLabel if i==0 else '')
+            if len(DX) > 1:
+                axes[ax][ay].plot(DX, y, 'g-', alpha=0.05, label=args.AlternateLabel if i==0 else '')
+            else:
+                axes[ax][ay].plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.025, label = 'Nominal' if i == 0 else '')
     axes[ax][ay].errorbar(DX, DY, yerr = DE, fmt='ro', label="Measurements")
 
 plt.tight_layout()
