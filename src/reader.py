@@ -50,7 +50,7 @@ def ReadData(FileName):
             if Items[0] != '#': continue
 
             if(Items[1] == 'Version'):
-                Version = Items[2]
+                Result['Version'] = Items[2]
             elif(Items[1] == 'DOI'):
                 Result["DOI"] = Items[2:]
             elif(Items[1] == 'Source'):
@@ -63,8 +63,12 @@ def ReadData(FileName):
                 Result["XY"] = Items[2:4]
             elif(Items[1] == 'Label'):
                 Result["Label"] = Items[2:]
+            else:
+                if 'ExtraComment' not in Result:
+                    Result['ExtraComment'] = []
+                Result["ExtraComment"].append(Line[2:])
 
-    if(Version not in ['1.0', '2.0']):
+    if(Result['Version'] not in ['1.0', '2.0']):
         raise AssertionError('Bad file version number while reading design points')
 
     XMode = ''
@@ -101,6 +105,43 @@ def ReadData(FileName):
         Result["SysLabel"] = Result["Label"][5:]
 
     return Result
+
+def WriteData(FileName, Item):
+    XMode = ''
+    if Item["Label"][0:4] == ['x', 'y', 'stat,low', 'stat,high']:
+        XMode = 'x'
+    elif Item["Label"][0:5] == ['xmin', 'xmax', 'y', 'stat,low', 'stat,high']:
+        XMode = 'xminmax'
+
+    # Assemble header information
+    Header = []
+    if 'Version' in Item:        Header.append('Version ' + Item['Version'])
+    if 'DOI' in Item:            Header.append('DOI ' + ' '.join(Item['DOI']))
+    if 'Source' in Item:         Header.append('Source ' + ' '.join(Item['Source']))
+    if 'System' in Item:         Header.append('System ' + Item['System'])
+    if 'Centrality' in Item:     Header.append('Centrality ' + ' '.join(Item['Centrality']))
+    if 'XY' in Item:             Header.append('XY ' + ' '.join(Item['XY']))
+    if 'Label' in Item:          Header.append('Label ' + ' '.join(Item['Label']))
+    if 'ExtraComment' in Item:   Header.extend(Item['ExtraComment'])
+
+    # Now assemble the big table
+    if XMode == 'x':
+        Xs = np.array([Item['Data']['x']])
+    else:
+        Xs = np.concatenate(([Item['Data']['x'] - Item['Data']['xerr']], [Item['Data']['x'] + Item['Data']['xerr']]), axis = 0)
+
+    if Xs.ndim == 0:
+        Xs = Xs[np.newaxis, :]
+
+    if Item['Data']['y'].ndim == 0:
+        Ys = np.array(Item['Data']['y'])[np.newaxis, :]
+    else:
+        Ys = np.array([Item['Data']['y']]).T
+    RawData = np.concatenate((Xs.T, Ys, Item['Data']['yerr']['stat'], Item['Data']['yerr']['sys']), axis = 1)
+
+    # Save to file!
+    np.savetxt(FileName, RawData, header = '\n'.join(Header))
+
 
 def ReadCovariance(FileName):
     # Initialize objects
