@@ -32,6 +32,10 @@ ObservablePlot:
      Suffix: 'ATLAS_Hadron2760'
      Label: ['0-5%', '5-10%', '10-20%', '20-30%', '30-40%', '40-50%']
      Common: 'ATLAS, 2.76 TeV, Charged Hadron'
+   - Key: ['ATLAS_2760_Hadron_ch_0_5', 'ATLAS_2760_Hadron_ch_5_10']
+     Suffix: 'ATLAS_Hadron2760Central'
+     Label: ['0-5%', '5-10%']
+     Common: 'ATLAS, 2.76 TeV, Charged Hadron'
    - Key: ['ATLAS_2760_Jet_R04_0_10', 'ATLAS_2760_Jet_R04_10_20', 'ATLAS_2760_Jet_R04_20_30', 'ATLAS_2760_Jet_R04_30_40', 'ATLAS_2760_Jet_R04_40_50']
      Suffix: 'ATLAS_Jet2760'
      Label: ['0-10%', '10-20%', '20-30%', '30-40%', '40-50%']
