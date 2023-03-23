@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 import pickle
 AllData = {}
@@ -34,7 +35,7 @@ Examples = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 500), :]
 TempPrediction = {"HeavyIon": Emulator.predict(Examples)}
 
 if DoAlternate == True:
-    chain = mcmc.chain(path = Path(f'result/{args.Alternate}/mcmc_chain.hdf'))
+    chain = mcmc.Chain(path = Path(f'result/{args.Alternate}/mcmc_chain.hdf'))
     MCMCSamples2 = chain.load()
     Examples2 = MCMCSamples2[ np.random.choice(range(len(MCMCSamples2)), 500), :]
     TempPrediction2 = {"HeavyIon": Emulator.predict(Examples2)}
@@ -73,17 +74,18 @@ for s2 in range(0, RC * CC):
     else:
         axes[ax][ay].plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [1, 1], 'k-.')
 
-    for i, y in enumerate(TempPrediction[S1][O][S2]):
-        if len(DX) > 1:
-            axes[ax][ay].plot(DX, y, 'b-', alpha=0.05, label="Nominal" if i==0 else '')
-        else:
-            axes[ax][ay].plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.025, label = 'Nominal' if i == 0 else '')
+    if DoAlternate == False:
+        for i, y in enumerate(TempPrediction[S1][O][S2]):
+            if len(DX) > 1:
+                axes[ax][ay].plot(DX, y, 'b-', alpha=0.05, label="Nominal" if i==0 else '')
+            else:
+                axes[ax][ay].plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.025, label = 'Nominal' if i == 0 else '')
     if DoAlternate == True:
         for i, y in enumerate(TempPrediction2[S1][O][S2]):
             if len(DX) > 1:
                 axes[ax][ay].plot(DX, y, 'g-', alpha=0.05, label=args.AlternateLabel if i==0 else '')
             else:
-                axes[ax][ay].plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.025, label = 'Nominal' if i == 0 else '')
+                axes[ax][ay].plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'g-', alpha=0.025, label = 'Nominal' if i == 0 else '')
     axes[ax][ay].errorbar(DX, DY, yerr = DE, fmt='ro', label="Measurements")
 
 plt.tight_layout()
