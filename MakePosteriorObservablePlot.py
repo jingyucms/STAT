@@ -91,6 +91,7 @@ for s2 in range(0, RC * CC):
 plt.tight_layout()
 tag = AllData['tag']
 figure.savefig(f'result/{tag}/plots/ObservablePosterior{args.Suffix}.pdf', dpi = 192)
+figure.savefig(f'result/{tag}/plots/ObservablePosterior{args.Suffix}.png', dpi = 192)
 # figure.savefig(f'result/{tag}/plots/ObservablePosterior.png', dpi = 192)
 
 
