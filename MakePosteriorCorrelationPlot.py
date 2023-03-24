@@ -28,6 +28,9 @@ if 'Config' in args:
 else:
     Setup = {}
 
+fontsize = 10 if 'FontSize' not in Setup else Setup['FontSize']
+labelsize = fontsize if 'LabelSize' not in Setup else Setup['LabelSize']
+
 NDimension = len(AllData["labels"])
 Ranges = np.array(AllData["ranges"]).T
 # figure, axes = plt.subplots(figsize = (3 * NDimension, 3 * NDimension), ncols = NDimension, nrows = NDimension)
@@ -38,6 +41,15 @@ PanelList = range(0, NDimension)
 if 'Reorder' in Setup:
     NFigure = len(Setup['Reorder'])
     PanelList = Setup['Reorder']
+
+if 'Transform' in Setup:
+    for i, action in enumerate(Setup['Transform']):
+        if action == 'exp':
+            MCMCSamples[:,i] = np.exp(MCMCSamples[:,i])
+            Ranges[:,i] = np.exp(Ranges[:,i])
+        if action == 'log':
+            MCMCSamples[:,i] = np.log(MCMCSamples[:,i])
+            Ranges[:,i] = np.log(Ranges[:,i])
 
 
 figure = plt.figure(figsize = (1.5 * (NFigure), 1.5 * (NFigure)))
@@ -58,21 +70,25 @@ for i, row in enumerate(axes):
             ax.hist(MCMCSamples[:,PanelList[i]], bins=50,
                 range=Ranges[:,PanelList[i]], histtype='step', color='green')
             ax.axvline(x = Truth[PanelList[i]], ymin = 0, color='red', linestyle='dotted', linewidth=5)
-            ax.set_xlabel(Names[PanelList[j]])
+            ax.set_xlabel(Names[PanelList[j]], fontsize = fontsize)
             ax.set_xlim(*Ranges[:,PanelList[j]])
+            ax.tick_params(axis = 'x', labelsize = labelsize)
+            ax.tick_params(axis = 'y', labelsize = labelsize)
             ax.label_outer()
             ax.get_yaxis().set_ticks([])
             if 'Ticks' in Setup:
                 ax.get_xaxis().set_ticks(Setup['Ticks'][PanelList[j]])
             if i == 0:
-                ax.set_ylabel(Names[PanelList[j]])
+                ax.set_ylabel(Names[PanelList[j]], fontsize = fontsize)
         if i>j:
             ax.hist2d(MCMCSamples[:, PanelList[j]], MCMCSamples[:, PanelList[i]],
                 bins=50, range=[Ranges[:,PanelList[j]], Ranges[:,PanelList[i]]],
                 cmap='Greens')
             ax.scatter(Truth[PanelList[j]], Truth[PanelList[i]], s = 80, linewidths = 2.5, marker = 'o', facecolors = 'none', edgecolors = 'r')
-            ax.set_xlabel(Names[PanelList[j]])
-            ax.set_ylabel(Names[PanelList[i]])
+            ax.set_xlabel(Names[PanelList[j]], fontsize = fontsize)
+            ax.set_ylabel(Names[PanelList[i]], fontsize = fontsize)
+            ax.tick_params(axis = 'x', labelsize = labelsize)
+            ax.tick_params(axis = 'y', labelsize = labelsize)
             ax.set_xlim(*Ranges[:,PanelList[j]])
             ax.set_ylim(*Ranges[:,PanelList[i]])
             if 'Ticks' in Setup:
@@ -89,6 +105,7 @@ if 'Suffix' in Setup:
 plt.tight_layout()
 tag = AllData['tag']
 plt.savefig(f'result/{tag}/plots/Correlation{Suffix}.pdf', dpi = 192)
+plt.savefig(f'result/{tag}/plots/Correlation{Suffix}.png', dpi = 192)
 # plt.savefig(f'result/{tag}/plots/Correlation.png', dpi = 192)
 
 
