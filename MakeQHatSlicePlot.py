@@ -101,11 +101,13 @@ figure, axes = plt.subplots(figsize = (5, 5))
 axes.hist(Y, bins = 50, range = (0, 10))
 
 bottom, top = axes.get_ylim()
-axes.set_ylim(bottom, (top - bottom) * 1.25 + bottom)
+axes.set_ylim(bottom, (top - bottom) * 1.5 + bottom)
 
-axes.text(0.95, 0.95, f"T = {args.T*1000:.0f} MeV, E = {args.E:.0f} GeV", transform = axes.transAxes, ha = 'right', va = 'top')
-axes.text(0.95, 0.90, "Posterior", transform = axes.transAxes, ha = 'right', va = 'top')
-axes.text(0.95, 0.85, '', transform = axes.transAxes, ha = 'right', va = 'top')
+axes.text(0.95, 0.95, f"T = {args.T*1000:.0f} MeV, E = {args.E:.0f} GeV", transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 15)
+axes.text(0.95, 0.90, "Posterior", transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 15)
+axes.text(0.95, 0.85, '', transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 15)
+axes.tick_params(axis = 'x', labelsize = 15)
+axes.tick_params(axis = 'y', labelsize = 15)
 
 plt.tight_layout()
 tag = AllData['tag']
@@ -140,19 +142,22 @@ if len(args.Plot) > 0:
 
 
     bottom, top = axes.get_ylim()
-    axes.set_ylim(bottom, (top - bottom) * 1.25 + bottom)
+    axes.set_ylim(bottom, (top - bottom) * 1.5 + bottom)
+    axes.tick_params(axis = 'x', labelsize = 15)
+    axes.tick_params(axis = 'y', labelsize = 15)
 
-    axes.set_xlabel(r'$\hat{q}/T^3$')
-    axes.set_ylabel('Area-normalized')
+    axes.set_xlabel(r'$\hat{q}/T^3$', fontsize = 15)
+    axes.set_ylabel('Area-normalized', fontsize = 15)
 
-    axes.text(0.95, 0.95, f"T = {args.T*1000:.0f} MeV, E = {args.E:.0f} GeV", transform = axes.transAxes, ha = 'right', va = 'top')
-    axes.text(0.95, 0.90, "Posterior", transform = axes.transAxes, ha = 'right', va = 'top')
+    axes.text(0.95, 0.95, f"T = {args.T*1000:.0f} MeV", transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 15)
+    axes.text(0.95, 0.88, f"E = {args.E:.0f} GeV", transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 15)
+    axes.text(0.95, 0.81, "Posterior", transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 15)
 
     if args.DoKSTest == True:
         pvalue = stats.kstest(Y1, Y2).pvalue
         axes.text(0.95, 0.85, f'KS p-value = {pvalue:.3f}', transform = axes.transAxes, ha = 'right', va = 'top')
 
-    axes.legend(loc = 'upper left')
+    axes.legend(loc = 'upper left', fontsize = 15)
 
     if args.Suffix != '':
         args.Suffix = "_" + args.Suffix
