@@ -23,6 +23,8 @@ if args.Alternate != '':
 if args.Suffix != '':
     args.Suffix = '_' + args.Suffix
 
+fontsize = 25
+
 import src
 src.Initialize()
 
@@ -64,8 +66,8 @@ def MakePlot(ToPlot, Suffix, Label, Common):
         axes = [axes]
 
     for i, ax in enumerate(axes):
-        ax.set_xlabel(r"$p_{T}$", fontsize = 15)
-        ax.set_ylabel(r"$R_{AA}$", fontsize = 15)
+        ax.set_xlabel(r"$p_{T}$ (GeV)", fontsize = fontsize)
+        ax.set_ylabel(r"$R_{AA}$", fontsize = fontsize)
 
         S1 = AllData["systems"][0]
         O  = AllData["observables"][0][0]
@@ -74,7 +76,7 @@ def MakePlot(ToPlot, Suffix, Label, Common):
         if i < len(Label):
             ax.text(0.05, 0.95, Label[i],
                 verticalalignment='top', horizontalalignment='left',
-                transform = ax.transAxes, fontsize = 15)
+                transform = ax.transAxes, fontsize = fontsize)
 
         ax.set_ylim([0, 1.2])
         ax.label_outer()
@@ -99,13 +101,16 @@ def MakePlot(ToPlot, Suffix, Label, Common):
                 else:
                     ax.plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.025, label = 'Nominal' if j == 0 else '')
         ax.errorbar(DX, DY, yerr = DE, fmt='ro')
+        ax.tick_params(axis = 'x', labelsize = fontsize)
+        ax.tick_params(axis = 'y', labelsize = fontsize)
 
-    axes[0].set_title(Common, loc = 'left', fontsize = 15)
-    axes[len(axes)-1].legend(loc = 'upper right')
+    axes[0].set_title(Common, loc = 'left', fontsize = fontsize)
+    # axes[len(axes)-1].legend(loc = 'upper right')
 
     plt.tight_layout()
     tag = AllData['tag']
     figure.savefig(f'result/{tag}/plots/SmallObservablePosterior{args.Suffix}{Suffix}.pdf', dpi = 192)
+    figure.savefig(f'result/{tag}/plots/SmallObservablePosterior{args.Suffix}{Suffix}.png', dpi = 192)
     plt.close('all')
 
 

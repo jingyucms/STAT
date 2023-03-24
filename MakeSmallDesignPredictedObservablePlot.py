@@ -10,6 +10,8 @@ with open('input/default.p', 'rb') as handle:
 from src import lazydict, emulator
 Emulator = emulator.Emulator.from_cache('HeavyIon')
 
+fontsize = 25
+
 Examples = AllData["design"]
 
 TempPrediction = {"HeavyIon": Emulator.predict(Examples)}
@@ -41,8 +43,8 @@ def MakePlot(ToPlot, Suffix, Label, Common):
         axes = [axes]
 
     for i, ax in enumerate(axes):
-        ax.set_xlabel(r"$p_{T}$", fontsize = 15)
-        ax.set_ylabel(r"$R_{AA}$", fontsize = 15)
+        ax.set_xlabel(r"$p_T$ (GeV)", fontsize = fontsize)
+        ax.set_ylabel(r"$R_{AA}$", fontsize = fontsize)
 
         S1 = AllData["systems"][0]
         O  = AllData["observables"][0][0]
@@ -51,7 +53,7 @@ def MakePlot(ToPlot, Suffix, Label, Common):
         if i < len(Label):
             ax.text(0.05, 0.95, Label[i],
                 verticalalignment='top', horizontalalignment='left',
-                transform = ax.transAxes, fontsize = 15)
+                transform = ax.transAxes, fontsize = fontsize)
 
         ax.set_ylim([0, 1.2])
         ax.label_outer()
@@ -69,12 +71,15 @@ def MakePlot(ToPlot, Suffix, Label, Common):
             else:
                 ax.plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.2)
         ax.errorbar(DX, DY, yerr = DE, fmt='ro', label="Measurements")
+        ax.tick_params(axis = 'x', labelsize = fontsize)
+        ax.tick_params(axis = 'y', labelsize = fontsize)
 
-    axes[0].set_title(Common, loc = 'left', fontsize = 15)
+    axes[0].set_title(Common, loc = 'left', fontsize = fontsize)
 
     plt.tight_layout()
     tag = AllData['tag']
     figure.savefig(f'result/{tag}/plots/SmallObservableDesign{Suffix}.pdf', dpi = 192)
+    figure.savefig(f'result/{tag}/plots/SmallObservableDesign{Suffix}.png', dpi = 192)
     plt.close('all')
 
 
