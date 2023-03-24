@@ -8,4 +8,6 @@ Ticks:
    - [-2, 0, 2, 4]
 Reorder: [0, 1]
 Suffix: 'Small'
+FontSize: 15
+LabelSize: 10
 

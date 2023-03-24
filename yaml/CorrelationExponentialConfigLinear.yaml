@@ -1,0 +1,13 @@
+Label: ['$\alpha_{s,fix}$', '$Q_0$', '$c_1$', '$c_2$', '$\tau_0$', '$c_3$']
+Ticks:
+   - [0.1, 0.2, 0.3, 0.4]
+   - [2, 4, 6, 8]
+   - [0, 4, 8]
+   - [0, 4, 8]
+   - [0.0, 0.4, 0.8, 1.2]
+   - [0, 40, 80]
+Transform: ['none', 'none', 'exp', 'exp', 'none', 'exp']
+Reorder: [0, 1, 4, 2, 3, 5]
+FontSize: 30
+LabelSize: 15
+Suffix: 'Linear'

@@ -7,5 +7,4 @@ Ticks:
    - [0.0, 0.4, 0.8, 1.2]
    - [-2, 0, 2, 4]
 Reorder: [0, 1, 4, 2, 3, 5]
-FontSize: 30
-LabelSize: 15
+FontSize: 10
