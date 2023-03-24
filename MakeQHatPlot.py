@@ -13,7 +13,6 @@ chain = mcmc.Chain()
 MCMCSamples = chain.load()
 
 
-
 # These taken from Raymond code
 # https://github.com/raymondEhlers/STAT/blob/1b0df83a9fd479f8110fd326ae26c0ce002a1109/run_analysis_base.py
 
@@ -61,7 +60,7 @@ def qhat(T=0, E=0, Q=0, parameters=None) -> float:
 
         return answer * 0.19732698   # 1/GeV to fm
 
-def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], Type = "", Suffix = "", DoJet = False):
+def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], Type = "", Suffix = "", DoJet = False, DoGreen = False):
 
     if Suffix != "":
         Suffix = "_" + Suffix
@@ -113,7 +112,10 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
 
         AllY.append(Y)
 
-        axes.plot(X, Y, 'b', alpha = 50 / NSample)
+        if DoGreen == False:
+            axes.plot(X, Y, 'b', alpha = 40 / NSample)
+        if DoGreen == True:
+            axes.plot(X, Y, 'g', alpha = 40 / NSample)
 
     if DoJet == True:
         JetBox1X = [0.170, 0.170, 0.386, 0.386, 0.170]
@@ -124,20 +126,24 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
         JetPointY = [4.6, 3.7]
         JetErrorY = [1.2, 1.4]
 
-        axes.plot(JetBox1X, JetBox1Y, 'k-.')
-        axes.plot(JetBox2X, JetBox2Y, 'k-.')
+        # axes.plot(JetBox1X, JetBox1Y, 'k-.')
+        # axes.plot(JetBox2X, JetBox2Y, 'k-.')
         axes.errorbar(JetPointX, JetPointY, fmt = 'ko', yerr = JetErrorY, label = "JET Collaboration")
-        axes.legend(loc = "lower left")
+        axes.legend(loc = "lower left", fontsize = 20)
 
-    axes.text(0.95, 0.95, ExtraText, transform = axes.transAxes, ha = 'right', va = 'top')
-    axes.text(0.95, 0.90, Type, transform = axes.transAxes, ha = 'right', va = 'top')
+    axes.text(0.95, 0.95, ExtraText, transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 20)
+    axes.text(0.95, 0.88, Type, transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 20)
 
-    axes.set_xlabel(XLabel)
-    axes.set_ylabel(r'$\hat{q}/T^3$')
+    axes.set_ylim(bottom = 0)
+    axes.set_xlabel(XLabel, fontsize = 20)
+    axes.set_ylabel(r'$\hat{q}/T^3$', fontsize = 20)
+    axes.tick_params(axis = 'x', labelsize = 20)
+    axes.tick_params(axis = 'y', labelsize = 20)
 
     plt.tight_layout()
     tag = AllData['tag']
     figure.savefig(f'result/{tag}/plots/QHat{Suffix}.pdf', dpi = 192)
+    figure.savefig(f'result/{tag}/plots/QHat{Suffix}.png', dpi = 192)
 
     AllY = np.array(AllY)
 
@@ -157,9 +163,9 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P = [[1, 1, 1, 1, 1, 1]], T
     axes.plot(X, Y50, 'b.')
     axes.plot(X, Y95, 'b-')
 
-    axes.text(0.95, 0.95, ExtraText, transform = axes.transAxes, ha = 'right', va = 'top')
-    axes.text(0.95, 0.90, Type, transform = axes.transAxes, ha = 'right', va = 'top')
-    axes.text(0.95, 0.85, 'Median and 90% range', transform = axes.transAxes, ha = 'right', va = 'top')
+    axes.text(0.95, 0.95, ExtraText, transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 20)
+    axes.text(0.95, 0.88, Type, transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 20)
+    axes.text(0.95, 0.81, 'Median and 90% range', transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 20)
 
     axes.set_xlabel(XLabel)
     axes.set_ylabel(r'$\hat{q}/T^3$')
@@ -174,6 +180,8 @@ Posterior = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 5000), :]
 
 PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E100")
 PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E100_Jet", DoJet = True)
+PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "PosteriorG_T_E100", DoGreen = True)
+PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "PosteriorG_T_E100_Jet", DoJet = True, DoGreen = True)
 PlotQHat(T = 0.3, E = 100, Q = 100, Scan = 'E', P = Posterior, Type = "Posterior", Suffix = "Posterior_E_T0.3")
 PlotQHat(T = 0.2, E = 20,  Q = 20,  Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E20")
 PlotQHat(T = 0.2, E = 10,  Q = 10,  Scan = 'T', P = Posterior, Type = "Posterior", Suffix = "Posterior_T_E10")
