@@ -51,6 +51,12 @@ if 'Transform' in Setup:
             MCMCSamples[:,i] = np.log(MCMCSamples[:,i])
             Ranges[:,i] = np.log(Ranges[:,i])
 
+if 'RangeOverride' in Setup:
+    for i, range in enumerate(Setup['RangeOverride']):
+        if range[0] != 'None':
+            Ranges[0,i] = range[0]
+        if range[1] != 'None':
+            Ranges[1,i] = range[1]
 
 figure = plt.figure(figsize = (1.5 * (NFigure), 1.5 * (NFigure)))
 gridspec = figure.add_gridspec(NFigure, NFigure, hspace = 0, wspace = 0)
