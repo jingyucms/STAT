@@ -17,6 +17,7 @@ parser.add_argument("--Max", help = "x max", default = 9, type = float)
 parser.add_argument("--Bin", help = "Number of bins", default = 40, type = float)
 parser.add_argument("--Suffix", help = "suffix", default = '', type = str)
 parser.add_argument("--DoKSTest", help = "do KS test or not", default = False, type = bool)
+parser.add_argument("--DoOverlapArea", help = "do overlap area or not", default = False, type = bool)
 parser.add_argument("--T", help = "temperature", default = 0.2, type = float)
 parser.add_argument("--E", help = "energy", default = 200, type = float)
 args = parser.parse_args()
@@ -25,11 +26,34 @@ import src
 src.Initialize()
 from src import mcmc
 
-if args.DoKSTest == True:
+if args.DoKSTest == True or args.DoOverlapArea == True:
     if len(args.Plot) < 2:
         args.DoKSTest = False
+        args.DoOverlapArea = False
 
 print(f'Do KS test? {args.DoKSTest}')
+
+def CalculateOverlapArea(Y1: list, Y2: list, Bin: int, Min: float, Max: float) -> float:
+    H1 = np.zeros(Bin)
+    H2 = np.zeros(Bin)
+
+    for i in range(0, Bin):
+        BinMin = Min + (Max - Min) / Bin * i
+        BinMax = Min + (Max - Min) / Bin * (i + 1)
+
+        if i == 0:
+            BinMin = -999999
+        if i == Bin - 1:
+            BinMax = 999999
+
+        H1[i] = sum([x >= BinMin and x < BinMax for x in Y1])
+        H2[i] = sum([x >= BinMin and x < BinMax for x in Y2])
+
+    H1 = H1 / sum(H1)
+    H2 = H2 / sum(H2)
+
+    Area = sum(np.minimum(H1, H2))
+    return Area
 
 # These taken from Raymond code
 # https://github.com/raymondEhlers/STAT/blob/1b0df83a9fd479f8110fd326ae26c0ce002a1109/run_analysis_base.py
@@ -117,7 +141,7 @@ figure.savefig(f'result/{tag}/plots/QHatSlice.pdf', dpi = 192)
 if len(args.Plot) > 0:
     figure, axes = plt.subplots(figsize = (5, 5))
 
-    if args.DoKSTest == True:
+    if args.DoKSTest == True or args.DoOverlapArea == True:
         Y1 = np.array([])
         Y2 = np.array([])
 
@@ -127,9 +151,9 @@ if len(args.Plot) > 0:
         # Posterior = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 5000), :]
         Y = GetQHatSlice(T = args.T, E = args.E, Q = args.E, P = MCMCSamples)
 
-        if args.DoKSTest == True and i == 0:
+        if (args.DoKSTest == True or args.DoOverlapArea == True) and i == 0:
             Y1 = np.array(Y)
-        if args.DoKSTest == True and i == 1:
+        if (args.DoKSTest == True or args.DoOverlapArea == True) and i == 1:
             Y2 = np.array(Y)
 
         # if len(args.Plot) <= 1:
@@ -155,7 +179,11 @@ if len(args.Plot) > 0:
 
     if args.DoKSTest == True:
         pvalue = stats.kstest(Y1, Y2).pvalue
-        axes.text(0.95, 0.85, f'KS p-value = {pvalue:.3f}', transform = axes.transAxes, ha = 'right', va = 'top')
+        axes.text(0.95, 0.74, f'KS p-value = {pvalue:.3f}', transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 15)
+
+    if args.DoOverlapArea == True:
+        area = CalculateOverlapArea(Y1 = Y1, Y2 = Y2, Bin = args.Bin, Min = args.Min, Max = args.Max)
+        axes.text(0.95, 0.74, f'Overlap area = {area:.3f}', transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 15)
 
     axes.legend(loc = 'upper left', fontsize = 15)
 
