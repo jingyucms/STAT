@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter, NullFormatter
 import numpy as np
 import yaml
 
@@ -14,9 +15,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--Config", help = "plot configuration file", type = str, default = "yaml/PlotConfig.yaml")
 args = parser.parse_args()
 
-def MakePlot(ToPlot, Suffix, Label, Common, GoodPCAOnly):
+def MakePlot(Item, GoodPCAOnly):
     # Let's not remove things silently.  We should let fails fail for this
     # ToPlot = [x for x in ToPlot if x in AllData["observables"][0][1]]
+
+    ToPlot = Item['Key']
+    Suffix = Item['Suffix']
+    Label  = Item['Label']
+    Common = Item['Common']
+    Logx   = Item['Logx'] if 'Logx' in Item else []
+    Tickx  = Item['Tickx'] if 'Tickx' in Item else [[]]
 
     if Suffix != "":
         Suffix = "_" + Suffix
@@ -71,6 +79,14 @@ def MakePlot(ToPlot, Suffix, Label, Common, GoodPCAOnly):
                 ax.plot([np.floor(DX[0] * 0.9), np.ceil(DX[0] * 1.1)], [y[0], y[0]], 'b-', alpha=0.2)
         ax.errorbar(DX, DY, yerr = DE, fmt='ro', label="Measurements")
 
+        if i < len(Logx) and Logx[i] == True:
+            ax.set_xscale('log')
+            ax.xaxis.set_major_formatter(ScalarFormatter())
+        if 'Tickx' in Item:
+            ax.get_xaxis().set_ticks(Tickx[i])
+            ax.get_xaxis().set_minor_formatter(NullFormatter())
+            ax.tick_params(axis='x', which='minor', bottom=False)
+
     axes[0].set_title(Common, loc = 'left', fontsize = 15)
 
     plt.tight_layout()
@@ -87,7 +103,7 @@ with open(args.Config, 'r') as stream:
         exit()
 
 for item in setup['ObservablePlot']:
-    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'], False)
-    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'], True)
+    MakePlot(item, False)
+    MakePlot(item, True)
 
 

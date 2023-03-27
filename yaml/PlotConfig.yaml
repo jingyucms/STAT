@@ -29,9 +29,29 @@ ObservablePlot:
      Label: ['R = 0.2', 'R = 0.4']
      Common: 'ALICE, 5.02 TeV, Jet, 0-10%'
    - Key: ['ATLAS_2760_Hadron_ch_0_5', 'ATLAS_2760_Hadron_ch_5_10', 'ATLAS_2760_Hadron_ch_10_20', 'ATLAS_2760_Hadron_ch_20_30', 'ATLAS_2760_Hadron_ch_30_40', 'ATLAS_2760_Hadron_ch_40_50']
+     Suffix: 'ATLAS_Hadron2760Log'
+     Label: ['0-5%', '5-10%', '10-20%', '20-30%', '30-40%', '40-50%']
+     Common: 'ATLAS, 2.76 TeV, Charged Hadron'
+     Logx: [True, True, True, True, True, True]
+     Tickx:
+        - [10, 30, 100]
+        - [10, 30, 100]
+        - [10, 30, 100]
+        - [10, 30, 100]
+        - [10, 30, 100]
+        - [10, 30, 100]
+   - Key: ['ATLAS_2760_Hadron_ch_0_5', 'ATLAS_2760_Hadron_ch_5_10', 'ATLAS_2760_Hadron_ch_10_20', 'ATLAS_2760_Hadron_ch_20_30', 'ATLAS_2760_Hadron_ch_30_40', 'ATLAS_2760_Hadron_ch_40_50']
      Suffix: 'ATLAS_Hadron2760'
      Label: ['0-5%', '5-10%', '10-20%', '20-30%', '30-40%', '40-50%']
      Common: 'ATLAS, 2.76 TeV, Charged Hadron'
+   - Key: ['ATLAS_2760_Hadron_ch_0_5', 'ATLAS_2760_Hadron_ch_5_10']
+     Suffix: 'ATLAS_Hadron2760CentralLog'
+     Label: ['0-5%', '5-10%']
+     Common: 'ATLAS, 2.76 TeV, Charged Hadron'
+     Logx: [True, True]
+     Tickx:
+        - [10, 30, 100]
+        - [10, 30, 100]
    - Key: ['ATLAS_2760_Hadron_ch_0_5', 'ATLAS_2760_Hadron_ch_5_10']
      Suffix: 'ATLAS_Hadron2760Central'
      Label: ['0-5%', '5-10%']
@@ -40,6 +60,17 @@ ObservablePlot:
      Suffix: 'ATLAS_Jet2760'
      Label: ['0-10%', '10-20%', '20-30%', '30-40%', '40-50%']
      Common: 'ATLAS, 2.76 TeV, Jet R = 0.4'
+   - Key: ['ATLAS_5020_Jet_R04_0_10', 'ATLAS_5020_Jet_R04_10_20', 'ATLAS_5020_Jet_R04_20_30', 'ATLAS_5020_Jet_R04_30_40', 'ATLAS_5020_Jet_R04_40_50']
+     Suffix: 'ATLAS_Jet5020Log'
+     Label: ['0-10%', '10-20%', '20-30%', '30-40%', '40-50%']
+     Common: 'ATLAS, 5.02 TeV, Jet R = 0.4'
+     Logx: [True, True, True, True, True]
+     Tickx:
+        - [100, 300, 600]
+        - [150, 300]
+        - [100, 300]
+        - [100, 300]
+        - [100, 300]
    - Key: ['ATLAS_5020_Jet_R04_0_10', 'ATLAS_5020_Jet_R04_10_20', 'ATLAS_5020_Jet_R04_20_30', 'ATLAS_5020_Jet_R04_30_40', 'ATLAS_5020_Jet_R04_40_50']
      Suffix: 'ATLAS_Jet5020'
      Label: ['0-10%', '10-20%', '20-30%', '30-40%', '40-50%']
@@ -61,6 +92,16 @@ ObservablePlot:
      Label: ['0-5%', '5-10%', '10-30%', '30-50%']
      Common: 'CMS, 2.76 TeV, Jet R = 0.4'
    - Key: ['CMS_5020_Hadron_ch_0_5', 'CMS_5020_Hadron_ch_5_10', 'CMS_5020_Hadron_ch_10_30', 'CMS_5020_Hadron_ch_30_50']
+     Suffix: 'CMS_Hadron5020Log'
+     Label: ['0-5%', '5-10%', '10-30%', '30-50%']
+     Common: 'CMS, 5.02 TeV, Charged Hadron'
+     Logx: [True, True, True, True]
+     Tickx:
+        - [10, 30, 100]
+        - [10, 30, 100]
+        - [10, 30, 100]
+        - [10, 30, 100]
+   - Key: ['CMS_5020_Hadron_ch_0_5', 'CMS_5020_Hadron_ch_5_10', 'CMS_5020_Hadron_ch_10_30', 'CMS_5020_Hadron_ch_30_50']
      Suffix: 'CMS_Hadron5020'
      Label: ['0-5%', '5-10%', '10-30%', '30-50%']
      Common: 'CMS, 5.02 TeV, Charged Hadron'
@@ -68,10 +109,18 @@ ObservablePlot:
      Suffix: 'CMS_Jet5020R02'
      Label: ['0-10%', '10-30%', '30-50%']
      Common: 'CMS, 5.02 TeV, Jet R = 0.2'
+     Tickx:
+        - [500, 600, 700]
+        - [250, 500, 750]
+        - [250, 300, 350]
    - Key: ['CMS_5020_Jet_R03_0_10', 'CMS_5020_Jet_R03_10_30', 'CMS_5020_Jet_R03_30_50']
      Suffix: 'CMS_Jet5020R03'
      Label: ['0-10%', '10-30%', '30-50%']
      Common: 'CMS, 5.02 TeV, Jet R = 0.3'
+     Tickx:
+        - [500, 600, 700]
+        - [250, 500, 750]
+        - [250, 300, 350]
    - Key: ['CMS_5020_Jet_R04_0_10', 'CMS_5020_Jet_R04_10_30', 'CMS_5020_Jet_R04_30_50']
      Suffix: 'CMS_Jet5020R04'
      Label: ['0-10%', '10-30%', '30-50%']

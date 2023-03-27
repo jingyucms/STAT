@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter, NullFormatter
 import numpy as np
 import yaml
 
@@ -14,9 +15,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--Config", help = "plot configuration file", type = str, default = "yaml/PlotConfig.yaml")
 args = parser.parse_args()
 
-def MakePlot(ToPlot, Suffix, Label, Common, Correlation):
+def MakePlot(Item, Correlation = True):
     # Let's not remove things silently.  We should let fails fail for this
     # ToPlot = [x for x in ToPlot if x in AllData["observables"][0][1]]
+
+    ToPlot = Item['Key']
+    Suffix = Item['Suffix']
+    Label  = Item['Label']
+    Common = Item['Common']
+    Logx   = Item['Logx'] if 'Logx' in Item else []
+    Tickx  = Item['Tickx'] if 'Tickx' in Item else [[]]
 
     if Suffix != "":
         Suffix = "_" + Suffix
@@ -61,6 +69,14 @@ def MakePlot(ToPlot, Suffix, Label, Common, Correlation):
 
         # ax.label_outer()
 
+        if i < len(Logx) and Logx[i] == True:
+            ax.set_xscale('log')
+            ax.xaxis.set_major_formatter(ScalarFormatter())
+        if 'Tickx' in Item:
+            ax.get_xaxis().set_ticks(Tickx[i])
+            ax.get_xaxis().set_minor_formatter(NullFormatter())
+            ax.tick_params(axis='x', which='minor', bottom=False)
+
     axes[0].set_title(Common, loc = 'left', fontsize = 15)
     axes[0].set_ylabel(r"$p_{T}$ index", fontsize = 15)
 
@@ -78,7 +94,7 @@ with open(args.Config, 'r') as stream:
         exit()
 
 for item in setup['ObservablePlot']:
-    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'], True)
-    MakePlot(item['Key'], item['Suffix'], item['Label'], item['Common'], False)
+    MakePlot(item, True)
+    MakePlot(item, False)
 
 
