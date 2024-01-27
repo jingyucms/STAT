@@ -24,5 +24,5 @@ Posterior = Emulator.predict(MCMCSamples)
 for Item in DataList:
     np.savetxt(f'result/{tag}/txt/' + Item + '_Posterior.txt.gz', Posterior['R_AA'][Item])
 
-
+np.savetxt(f'result/{tag}/txt/MCMCSamples.txt', MCMCSamples)
 
