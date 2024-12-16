@@ -2,23 +2,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 
-import pickle
-AllData = {}
-with open('input/default.p', 'rb') as handle:
-    AllData = pickle.load(handle)
-
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--Alternate", help = "whether to plot a second collection", type = str, default = '')
 parser.add_argument("--NominalLabel", help = "label for the nominal", type = str, default = '')
 parser.add_argument('--AlternateLabel', help = 'label for alternate collection', type = str, default = '')
 parser.add_argument('--Prefix', help = 'prefix to add to file name', type = str, default = '')
+parser.add_argument('--Tag', help = 'tag for the nominal', type = str, default = '')
+
 args = parser.parse_args()
+
+
+import pickle
+
+AllDataTag = {}
+with open('input/default_tag.p', 'rb') as handle:
+    AllDataTag = pickle.load(handle)
+tag = AllDataTag["tag"]
+if args.Tag != "": tag = args.Tag
+
+AllData = {}
+with open(f'result/{tag}/default.p', 'rb') as handle:
+    AllData = pickle.load(handle)
 
 import src
 src.Initialize()
 from src import mcmc
-chain = mcmc.Chain()
+chain = mcmc.Chain(path = Path(f'result/{tag}/mcmc_chain.h5'))
 MCMCSamples = chain.load()
 
 if args.Alternate != '':
@@ -106,6 +116,8 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P1 = [[1, 1, 1, 1, 1, 1]], 
     AllY1 = []
     AllY2 = []
 
+    #print(Suffix, type(P1), type(P2))
+
     NSample = P1.shape[0]
     for i in range(NSample):
         if Scan == 'T':
@@ -130,7 +142,7 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P1 = [[1, 1, 1, 1, 1, 1]], 
         if DoGreen == True:
             axes.plot(X, Y, 'g', alpha = 40 / NSample)
 
-    if P2 != [[]]:
+    if P2.size != 0:
         NSample = P2.shape[0]
         for i in range(NSample):
             if Scan == 'T':
@@ -193,20 +205,22 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P1 = [[1, 1, 1, 1, 1, 1]], 
         Y105.append(Y1[int(Y1.shape[0]*0.05)])
         Y150.append(Y1[int(Y1.shape[0]*0.50)])
         Y195.append(Y1[int(Y1.shape[0]*0.95)])
-    for i in range(0, AllY2.shape[1]):
-        Y2 = np.sort(AllY2[:,i])
-        Y205.append(Y2[int(Y2.shape[0]*0.05)])
-        Y250.append(Y2[int(Y2.shape[0]*0.50)])
-        Y295.append(Y2[int(Y2.shape[0]*0.95)])
+    if P2.size != 0:
+        for i in range(0, AllY2.shape[1]):
+            Y2 = np.sort(AllY2[:,i])
+            Y205.append(Y2[int(Y2.shape[0]*0.05)])
+            Y250.append(Y2[int(Y2.shape[0]*0.50)])
+            Y295.append(Y2[int(Y2.shape[0]*0.95)])
 
     figure, axes = plt.subplots(figsize = (5, 5))
 
     axes.plot(X, Y105, '-', color= "blue", label = args.NominalLabel)
     axes.plot(X, Y150, '.', color = "blue")
     axes.plot(X, Y195, '-', color = "blue")
-    axes.plot(X, Y205, '-', color = "orange", label = args.AlternateLabel)
-    axes.plot(X, Y250, '.', color = "orange")
-    axes.plot(X, Y295, '-', color = "orange")
+    if P2.size != 0:
+        axes.plot(X, Y205, '-', color = "orange", label = args.AlternateLabel)
+        axes.plot(X, Y250, '.', color = "orange")
+        axes.plot(X, Y295, '-', color = "orange")
 
     axes.text(0.95, 0.95, ExtraText, transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 20)
     axes.text(0.95, 0.88, Type, transform = axes.transAxes, ha = 'right', va = 'top', fontsize = 20)
@@ -218,7 +232,7 @@ def PlotQHat(T = 0.15, E = 100, Q = 100, Scan = 'T', P1 = [[1, 1, 1, 1, 1, 1]], 
     if DoJet == True:
         axes.errorbar(JetPointX, JetPointY, fmt = 'ko', yerr = JetErrorY, label = "JET Collaboration")
 
-    if DoJet == True or P2 != [[]]:
+    if DoJet == True or P2.size != 0:
         axes.legend(loc = "lower left", fontsize = 20)
 
     plt.tight_layout()
@@ -237,10 +251,10 @@ PlotQHat(T = 0.3, E = 100, Q = 100, Scan = 'E', P1 = Posterior, P2 = Posterior2,
 PlotQHat(T = 0.2, E = 20,  Q = 20,  Scan = 'T', P1 = Posterior, P2 = Posterior2, Type = "Posterior", Prefix = args.Prefix, Suffix = "Posterior_T_E20")
 PlotQHat(T = 0.2, E = 10,  Q = 10,  Scan = 'T', P1 = Posterior, P2 = Posterior2, Type = "Posterior", Prefix = args.Prefix, Suffix = "Posterior_T_E10")
 
-Design = AllData["design"]
+#Design = AllData["design"]
 
-PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P1 = Design, Type = "Design", Suffix = "Design_T_E100")
-PlotQHat(T = 0.3, E = 100, Q = 100, Scan = 'E', P1 = Design, Type = "Design", Suffix = "Design_E_T0.3")
+#PlotQHat(T = 0.2, E = 100, Q = 100, Scan = 'T', P1 = Design, Type = "Design", Suffix = "Design_T_E100")
+#PlotQHat(T = 0.3, E = 100, Q = 100, Scan = 'E', P1 = Design, Type = "Design", Suffix = "Design_E_T0.3")
 
 
 

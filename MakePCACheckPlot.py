@@ -13,6 +13,8 @@ if 'pcacheck' in AllData['emulator']:
 else:
     PCACheck = [1, AllData['emulator']['npc']]
 
+#print(PCACheck)
+
 X = []
 Slices = {}
 NObs = 0
@@ -22,6 +24,7 @@ for Item in AllData['data']['HeavyIon']['R_AA']:
     Slices[Item] = slice(NObs, NObs + N)
     NObs = NObs + N
 X = np.concatenate(X, axis=1)
+#print(X.shape)
 
 SystemCount = len(AllData["systems"])
 BinCount = len(AllData['observables'][0][1])
@@ -29,10 +32,14 @@ BinCount = len(AllData['observables'][0][1])
 RC = int(np.sqrt(BinCount))
 CC = int(np.ceil(BinCount / RC))
 
+#print("BinCount", BinCount)
+
 def ReduceDimension(Data, NPC, Slices):
     scaler = StandardScaler(copy = True)
     pca = PCA(n_components = NPC, copy = True, whiten = True, svd_solver = 'full')
+    #pca = PCA(copy = True, whiten = True, svd_solver = 'full')
     Y = pca.fit_transform(scaler.fit_transform(Data))
+    #print(Data.shape, Y.shape)
     XTemp = pca.inverse_transform(Y) * scaler.scale_ + scaler.mean_
     return {"R_AA": {Item: XTemp[..., S] for Item, S in Slices.items()}}
 
@@ -42,6 +49,7 @@ for NPC in PCACheck:
     print(f'Processing dimension reduction with NPC = {NPC}...')
 
     XNew = ReduceDimension(X, NPC, Slices)
+    #print("XNew",XNew)
 
     # Check reduced dimension
 
@@ -99,7 +107,11 @@ for NPC in PCACheck:
             pull      = (y - yoriginal) / yerror
             # axes[ax][ay].plot(DX, pull, 'b-', alpha=0.2)
 
+            #print("y",y)
+            #print("yoriginal",yoriginal)
             allpull.append(pull)
+
+        #print(len(allpull))
 
     # plt.tight_layout()
     # tag = AllData['tag']
@@ -108,7 +120,8 @@ for NPC in PCACheck:
     # Pull summary plot
 
     allpull = np.concatenate(allpull)
-
+    #print("allpull", len(allpull), allpull)
+    
     figure, axes = plt.subplots(figsize = (3, 3), nrows = 1, ncols = 1)
     figure.subplots_adjust(top = 0.95, left = 0.1, right = 0.95, bottom = 0.1)
 

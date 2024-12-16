@@ -15,7 +15,10 @@ figure, axes = plt.subplots(figsize = (3 * N, 3 * N), nrows = N, ncols = N)
 for I1, Item1 in enumerate(DataList):
     for I2, Item2 in enumerate(DataList):
         Cov = AllData["cov"]["HeavyIon"][("R_AA", Item1)][("R_AA", Item2)]
-        if Cov != None:
+        #if Cov != None:
+        #if Cov:
+        #if Cov.any() != None:
+        if Cov is not None and Cov.any():
             axes[I1][I2].imshow(Cov, vmin = 0)
 
 plt.tight_layout()

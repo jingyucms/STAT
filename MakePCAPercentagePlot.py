@@ -13,8 +13,11 @@ Emulator = emulator.Emulator.from_cache('HeavyIon')
 import matplotlib.pyplot as plt
 
 N = len(Emulator.pca.explained_variance_ratio_)
+#print(N)
 
 figure, axes = plt.subplots()
+
+#print(Emulator.pca.explained_variance_ratio_.shape,Emulator.pca.explained_variance_ratio_)
 
 axes.plot(np.arange(1, N), Emulator.pca.explained_variance_ratio_[:-1], 'o-b')
 axes.axvline(x = Emulator.npc, ymin = 0, color='red', linestyle='dotted', linewidth=2)
@@ -32,6 +35,7 @@ plt.savefig(f'result/{tag}/plots/PCAIndividualPlot.pdf', dpi = 192)
 figure, axes = plt.subplots()
 
 axes.plot(np.arange(1, N + 1), np.cumsum(Emulator.pca.explained_variance_ratio_), 'o-b')
+#print(np.cumsum(Emulator.pca.explained_variance_ratio_))
 axes.axvline(x = Emulator.npc, ymin = 0, color='red', linestyle='dotted', linewidth=2)
 
 axes.set_xlabel('PCA Count')

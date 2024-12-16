@@ -13,6 +13,8 @@ import argparse
 import get_hepdata
 import get_phenix
 import edit_data
+import time
+import urllib.request
 
 #----------------------------------------------------------------------------------------------
 def get_expdata(configFile):
@@ -26,9 +28,9 @@ def get_expdata(configFile):
     if 'hepdata' in entry:
       print('Getting hepdata for entry "{}"...'.format(entry))
       get_hepdata.get_hepdata(config[entry])
-    elif 'phenix' in entry:
-      print('Getting phenix data for entry "{}"...'.format(entry))
-      get_phenix.get_phenix(config[entry])
+    #elif 'phenix' in entry:
+    #  print('Getting phenix data for entry "{}"...'.format(entry))
+    #  get_phenix.get_phenix(config[entry])
 
   # Loop through configFile, and process each extractError entry with edit_data.py
   for entry in config:
@@ -55,6 +57,13 @@ if __name__ == '__main__':
     print('File \"{0}\" does not exist! Exiting!'.format(args.configFile))
     sys.exit(0)
 
+  #try:
   get_expdata(configFile = args.configFile)
+  #except urllib.error.HTTPError as e:
+  #  if e.code == 429:  # Too Many Requests
+  #    print("Rate limit exceeded. Waiting...")
+  #    time.sleep(10)  # Wait 10 seconds before retrying
+  #  else:
+  #    raise
 
 

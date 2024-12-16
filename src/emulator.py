@@ -26,6 +26,7 @@ from sklearn.preprocessing import StandardScaler
 
 from . import cachedir, lazydict, observables, data_list#model
 from .design import Design
+import matplotlib.pyplot as plt
 
 
 class _Covariance:
@@ -71,21 +72,29 @@ class Emulator:
             'training emulator for system %s (%d PC, %d restarts, alpha=%.2f, kernel=%s, noise=%f)',
             system, npc, nrestarts, alpha, kernelchoice, noise
         )
-
         Y = []
         self._slices = {}
         self.observables = observables
         # Build an array of all observables to emulate.
         nobs = 0
+        #print(data_list['HeavyIon']['R_AA']['ALICE_2760_Hadron_ch_0_5'].keys())
         for obs, subobslist in self.observables:
+            #print(obs,subobslist)
             self._slices[obs] = {}
             for subobs in subobslist:
                 Y.append(data_list[system][obs][subobs]['Y'])
+                #print(subobs, data_list[system][obs][subobs]['x'], len(data_list[system][obs][subobs]['Y']))
                 n = Y[-1].shape[1]
+                #print(Y[-1].shape[1])
                 self._slices[obs][subobs] = slice(nobs, nobs + n)
                 nobs += n
 
+        #print("nobs", nobs)        
+        #print("Y", Y)
         Y = np.concatenate(Y, axis=1)
+        #print("Y", Y.shape, Y)
+        #plt.plot(Y)
+        #plt.show()
         # pickle.dump(Y,open('mod_dat.p','wb'))
 
         self.npc = npc
@@ -102,22 +111,26 @@ class Emulator:
         # PCAIndex = range(int(Y.shape[0] / 2))
         PCAY = np.array([Y[i] for i in PCAIndex])
 
-        # print(Y.shape)
-        # print(PCAY.shape)
-
         # Standardize observables and transform through PCA.  Use the first
         # `npc` components but save the full PC transformation for later.
 
         # Do PCA fit with only ones usable for PCA
         self.pca.fit_transform(self.scaler.fit_transform(PCAY))
         # Do PCA transform with full Y
+        #npc=2
+        #print(npc)
         Z = self.pca.transform(self.scaler.transform(Y))[:, :npc]
         # Do PCA fit+transform at once with full Y
         # Z = self.pca.fit_transform(self.scaler.fit_transform(Y))[:, :npc]
 
+        #print("Z", Z.shape, Z)
+        #plt.plot(Z)
+        #plt.show()
+
         # Define kernel (covariance function):
         # Gaussian correlation (RBF) plus a noise term.
         design = Design(system)
+        #print("design", design.print_array())
 
        # design = joblib.load(filename='cache/lhs/design_s.p')
        # maxes = np.apply_along_axis(max,0,design)
@@ -126,7 +139,8 @@ class Emulator:
        # ptp = maxes - mins
 
         ptp = design.max - design.min
-        print(ptp)
+        print('ptp', ptp)
+        print("noise", noise)
 
         noise0 = 0.5**2
         noisemin = 0.0001**2
@@ -191,6 +205,8 @@ class Emulator:
             )
 
         # Fit a GP (optimize the kernel hyperparameters) to each PC.
+        print("kernel", kernelchoice)
+        print("alpha", alpha)
         self.gps = [
             GPR(
                 kernel=kernel, alpha=alpha,
@@ -347,12 +363,16 @@ class Emulator:
         """
         gp_mean = [gp.predict(X, return_cov=return_cov) for gp in self.gps]
 
+        #print("gp_mean",gp_mean)
+
         if return_cov:
             gp_mean, gp_cov = zip(*gp_mean)
 
         mean = self._inverse_transform(
             np.concatenate([m[:, np.newaxis] for m in gp_mean], axis=1)
         )
+
+        #print("mean",mean)
 
         if return_cov:
             # Build array of the GP predictive variances at each sample point.
@@ -362,7 +382,7 @@ class Emulator:
             ], axis=1)
 
             # Add extra uncertainty to predictive variance.
-            extra_std = np.array(extra_std, copy=False).reshape(-1, 1)
+            extra_std = np.array(extra_std, copy=True).reshape(-1, 1)
             gp_var += extra_std**2
 
             # Compute the covariance at each sample point using the

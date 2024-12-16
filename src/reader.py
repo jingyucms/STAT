@@ -43,6 +43,7 @@ def ReadData(FileName):
     Result["FileName"] = FileName
 
     # First read all the header information
+    print(FileName)
     with open(FileName, "r") as f:
         for Line in f:
             Items = Line.split()
@@ -76,6 +77,10 @@ def ReadData(FileName):
         XMode = 'x'
     elif Result["Label"][0:5] == ['xmin', 'xmax', 'y', 'stat,low', 'stat,high']:
         XMode = 'xminmax'
+    elif Result["Label"][0:5] == ['xmin', 'xmax', 'y', 'sys,low', 'sys,high']:
+        XMode = 'reversedxminmax'
+    elif Result["Label"][0:4] == ['xmin', 'xmax', 'y', 'y_err']:
+        XMode = 'nosys'
     else:
         raise AssertionError('Invalid list of initial columns!  Should be ("x", "y", "stat,low", "stat,high"), or ("xmin", "xmax", "y", "stat,low", "stat,high")')
 
@@ -96,13 +101,39 @@ def ReadData(FileName):
         if RawData.ndim == 1:
             RawData = RawData[np.newaxis, :]
 
+        max_label = len(RawData[0])
         Result["Data"]["x"] = (RawData[:, 0] + RawData[:, 1]) / 2
         Result["Data"]["xerr"] = (RawData[:, 1] - RawData[:, 0]) / 2
         Result["Data"]["y"] = RawData[:, 2]
         Result["Data"]["yerr"] = {}
         Result["Data"]["yerr"]["stat"] = RawData[:, 3:5]
         Result["Data"]["yerr"]["sys"] = RawData[:, 5:]
-        Result["SysLabel"] = Result["Label"][5:]
+        Result["SysLabel"] = Result["Label"][5:max_label]
+        print(Result["SysLabel"])
+    elif(XMode == 'reversedxminmax'):
+        # If we only have one row of data (eg. CMS Jet RAA, R = 1.0), we need to promote the array
+        # from being treated as 1D to being treated as 2D with one row.
+        if RawData.ndim == 1:
+            RawData = RawData[np.newaxis, :]
+
+        max_label = len(RawData[0])
+        Result["Data"]["x"] = (RawData[:, 0] + RawData[:, 1]) / 2
+        Result["Data"]["xerr"] = (RawData[:, 1] - RawData[:, 0]) / 2
+        Result["Data"]["y"] = RawData[:, 2]
+        Result["Data"]["yerr"] = {}
+        Result["Data"]["yerr"]["stat"] = RawData[:, 5:7]
+        Result["Data"]["yerr"]["sys"] = np.hstack((RawData[:, 3:5], RawData[:, 7:]))
+        Result["SysLabel"] = list(np.hstack((Result["Label"][3:5], Result["Label"][7:max_label])))
+        print(Result["SysLabel"])
+    elif(XMode == 'nosys'):
+        if RawData.ndim == 1:
+            RawData = RawData[np.newaxis, :]
+        Result["Data"]["x"] = (RawData[:, 0] + RawData[:, 1]) / 2
+        Result["Data"]["xerr"] = (RawData[:, 1] - RawData[:, 0]) / 2
+        Result["Data"]["y"] = RawData[:, 2]
+        Result["Data"]["yerr"] = {}
+        Result["Data"]["yerr"]["sum"] = RawData[:,[3,3]]
+        Result["SysLabel"] = ['','']
 
     return Result
 
@@ -262,8 +293,12 @@ def EstimateCovariance(DataX, DataY, SysLength = {}, SysStrength = {}, ScaleX = 
     DiagonalBlock = False
     if DataX["FileName"] == DataY["FileName"]:
         DiagonalBlock = True
-        for i in range(0, NX):
-            Matrix[i, i] = Matrix[i, i] + DataX["Data"]["yerr"]["stat"][i][0]**2
+        try:
+            for i in range(0, NX):
+                Matrix[i, i] = Matrix[i, i] + DataX["Data"]["yerr"]["stat"][i][0]**2
+        except KeyError:
+            for i in range(0, NX):
+                Matrix[i, i] = Matrix[i, i] + (DataX["Data"]["y"][i]*0.01)**2
 
     # Add a default behavior if not supplied already
     if "default" not in SysLength:
@@ -272,6 +307,7 @@ def EstimateCovariance(DataX, DataY, SysLength = {}, SysStrength = {}, ScaleX = 
         SysStrength["default"] = 1.0
 
     # Now loop over systematic source in dataX, and check if the same thing exist in dataY
+    print(DataX["SysLabel"])
     for Source in DataX["SysLabel"]:
         if ",low" in Source:
             continue
@@ -283,6 +319,8 @@ def EstimateCovariance(DataX, DataY, SysLength = {}, SysStrength = {}, ScaleX = 
 
         IX = DataX["SysLabel"].index(Source)
         IY = DataY["SysLabel"].index(Source)
+
+        print(DataX["SysLabel"], DataY["SysLabel"], IX, IY)
 
         Length = SysLength.get(Source, SysLength["default"])
         Strength = SysStrength.get(Source, SysStrength["default"])
@@ -297,6 +335,9 @@ def EstimateCovariance(DataX, DataY, SysLength = {}, SysStrength = {}, ScaleX = 
                     if DiagonalBlock == True:
                         Factor = (x == y)
                 Factor = Factor * Strength
-                Matrix[x, y] = Matrix[x, y] + DataX["Data"]["yerr"]["sys"][x][IX] * DataY["Data"]["yerr"]["sys"][y][IY] * Factor
+                try:
+                    Matrix[x, y] = Matrix[x, y] + DataX["Data"]["yerr"]["sys"][x][IX] * DataY["Data"]["yerr"]["sys"][y][IY] * Factor
+                except KeyError:
+                    Matrix[x, y] = Matrix[x, y] + DataX["Data"]["yerr"]["sum"][x][IX] * DataY["Data"]["yerr"]["sum"][y][IY] * Factor
 
     return Matrix

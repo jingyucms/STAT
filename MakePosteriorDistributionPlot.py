@@ -2,15 +2,24 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 
-import pickle
-AllData = {}
-with open('input/default.p', 'rb') as handle:
-    AllData = pickle.load(handle)
-
 import argparse
 parser = argparse.ArgumentParser()
+parser.add_argument('--Tag', help = "config file", type = str, default = "")
 parser.add_argument('--Suffix', help = 'suffix to add to file name', type = str, default = '')
 args = parser.parse_args()
+
+import pickle
+AllDataTag = {}
+with open('input/default_tag.p', 'rb') as handle:
+    AllDataTag = pickle.load(handle)
+tag = AllDataTag["tag"]
+if args.Tag != "": tag = args.Tag 
+
+print("Tag", tag)
+
+AllData = {}
+with open(f'result/{tag}/default.p', 'rb') as handle:
+    AllData = pickle.load(handle)
 
 if args.Suffix != '':
     args.Suffix = '_' + args.Suffix
@@ -22,7 +31,7 @@ from src import lazydict, emulator
 Emulator = emulator.Emulator.from_cache('HeavyIon')
 
 from src import mcmc
-chain = mcmc.Chain()
+chain = mcmc.Chain(path = Path(f'result/{tag}/mcmc_chain.hdf'))
 MCMCSamples = chain.load()
 
 Examples = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 500), :]
@@ -35,6 +44,8 @@ RC = int(np.sqrt(BinCount))
 CC = int(np.ceil(BinCount / RC))
 
 figure, axes = plt.subplots(figsize = (3 * CC, 3 * RC), nrows = RC, ncols = CC)
+
+DoAlternate = False
 
 for s2 in range(0, RC * CC):
     ax = s2 % RC

@@ -5,6 +5,7 @@ import src.reader as Reader
 import yaml
 import sys
 import argparse
+from scipy import stats
 
 # Initialize temporary containers
 DataList = []
@@ -79,6 +80,7 @@ if len(RemovedList) > 0:
         Tag = Tag + '_' + Item
 
 for Item in DataList:
+    print(Item)
     RawData[Item] = Reader.ReadData(Setup['BaseDirectory'] + Setup['Data'][Item]['Data'])
     RawData[Item]["Data"]["c"] = False   # Initialize c-factor switch to false
     if 'CFactor' in Setup['Data'][Item] and Setup['Data'][Item]['CFactor'] == True:
@@ -91,6 +93,7 @@ for Item in DataList:
         RawPredictionError[Item]['Prediction'][:,:] = -1
 
 RawDesign = Reader.ReadDesign(Setup['BaseDirectory'] + Setup['Design']['File'])
+#print(len(RawDesign['Design']))
 for I in Setup['Design']['LogScale']:
     RawDesign['Design'][:, I] = np.log(RawDesign['Design'][:, I])
     RawDesign['Parameter'][I] = 'log(' + RawDesign['Parameter'][I] + ')'
@@ -162,7 +165,6 @@ if 'DataCut' in Setup and 'MaxPT' in Setup['DataCut']:
         RawPrediction[Item]['Prediction'] = np.delete(RawPrediction[Item]["Prediction"], range(Size - DeleteCount, Size), axis = 1)
         RawPredictionError[Item]['Prediction'] = np.delete(RawPredictionError[Item]["Prediction"], range(Size - DeleteCount, Size), axis = 1)
 
-# print(RawData)
 
 # If some items do not survive the low/high energy cut, remove them from the list
 EmptyList = []
@@ -192,17 +194,38 @@ ListToDelete = [int(x) for x in ListToDelete]
 DesignIndex = np.delete(range(0, InputDesignCount), ListToDelete)
 
 if 'PoorManQALimit' in Setup['Design']:
+    minimum = 227 # not all the prection has exactly 230 points for 230106 yaml
+    zscores = {}
+    for Item in DataList:
+        zscores[Item]=stats.zscore(RawPrediction[Item]['Prediction'], axis=0)
     for I in DesignIndex:
-        if sum(any(RawPrediction[Item]['Prediction'][I,:] > Setup['Design']['PoorManQALimit']) for Item in DataList) > 0:
-            ListToDelete.append(I)
+        for Item in DataList:
+            if I >= minimum or max(RawPrediction[Item]['Prediction'][I,:]) > Setup['Design']['PoorManQALimit'] or any(np.abs(zscores[Item][I,:]) > Setup['Design']['PoorManQALimitZScore']):
+            #if I >= minimum or max(RawPrediction[Item]['Prediction'][I,:]) > Setup['Design']['PoorManQALimit']:
+                ListToDelete.append(I)
+                break
     ListToDelete.sort()
-
+print(len(ListToDelete))
+ListToDelete = [227, 228, 229]
+    
 RawDesign['Design'] = np.delete(RawDesign['Design'], ListToDelete, axis = 0)
 DesignIndex = np.delete(range(0, InputDesignCount), ListToDelete)
 
+def safe_delete(arr, indices):
+    # Convert indices to a set for faster lookup
+    valid_indices = [i for i in indices if i < len(arr[:,0])]
+    return np.delete(arr, list(valid_indices), axis = 0)  # Delete the items and return the new array
+
 for Item in DataList:
-    RawPrediction[Item]['Prediction'] = np.delete(RawPrediction[Item]['Prediction'], ListToDelete, axis = 0)
-    RawPredictionError[Item]['Prediction'] = np.delete(RawPredictionError[Item]['Prediction'], ListToDelete, axis = 0)
+    RawPrediction[Item]['Prediction'] = safe_delete(RawPrediction[Item]['Prediction'], ListToDelete)
+    RawPredictionError[Item]['Prediction'] = safe_delete(RawPredictionError[Item]['Prediction'], ListToDelete)
+
+## subtract 1 for each point in the 230116 yaml
+for Item in DataList:
+    if "CMS_2760_InclusiveJetDpt" in Item:
+        #RawPrediction[Item]['Prediction'] = RawPrediction[Item]['Prediction']-1
+        RawData[Item]["Data"]["y"] = RawData[Item]["Data"]["y"]+1
+        #print(Item, RawPrediction[Item]['Prediction'].shape)
 
 # If prediction error is exactly 0, throw a warning and set it to some huge number
 for Item in DataList:
@@ -248,6 +271,7 @@ def non_uniform_savgol(x, y, window, polynom):
     if len(x) != len(y):
         raise ValueError('"x" and "y" must be of the same size')
 
+    if len(x) <= window: return y
     if len(x) < window:
         raise ValueError('The data size must be larger than the window size')
 
@@ -271,7 +295,7 @@ def non_uniform_savgol(x, y, window, polynom):
     tA = np.empty((polynom, window))    # Transposed matrix
     t = np.empty(window)                # Local x variables
     y_smoothed = np.full(len(y), np.nan)
-
+    
     # Start smoothing
     for i in range(half_window, len(x) - half_window, 1):
         # Center a window of x values on x[i]
@@ -312,6 +336,7 @@ def non_uniform_savgol(x, y, window, polynom):
                 for k in range(polynom):
                     last_coeffs[k] += coeffs[k, j] * y[len(y) - window + j]
 
+    #print(y)
     # Interpolate the result at the left border
     for i in range(0, half_window, 1):
         y_smoothed[i] = 0
@@ -330,19 +355,130 @@ def non_uniform_savgol(x, y, window, polynom):
 
     return y_smoothed
 
+from scipy.interpolate import UnivariateSpline
+def spline_int(x, y):
+    spl = UnivariateSpline(x, y, s=0.5)
+    y_smoothed = spl(x)
+    return y_smoothed
+
+from statsmodels.nonparametric.kernel_regression import KernelReg
+def kernel_reg(x, y):
+    kr = KernelReg(y, x, var_type='c')
+    y_smoothed, _ = kr.fit(x)
+    return y_smoothed
+
+from statsmodels.nonparametric.smoothers_lowess import lowess
+def lowess_filt(x, y):
+    #print("Debug")
+    y=y.flatten()
+    x=x.flatten()
+    y_smoothed = lowess(y, x, frac=0.2)
+    #print("Debug")
+    return y_smoothed
+
+
+from scipy.interpolate import CubicSpline
+def my_filt(x, y):
+    n = len(y)
+    if n < 4: return y
+    y_smoothed = []
+    for i in range(n):
+        if i < 2: y_smoothed += [y[i]]
+        elif i < n-2:
+            sp = CubicSpline([x[i-2], x[i-1], x[i+1]],[y[i-2], y[i-1], y[i+1]])
+            eva = sp(x[i])
+            if abs(eva - y[i]) > 0.01:
+                y_smoothed += [eva]
+            else: y_smoothed += [y[i]]
+            y[i] = y_smoothed[i]
+        else:
+            sp = CubicSpline(x[-4:-1], y[-4:-1])
+            eva = sp(x[i])
+            if abs(eva - y[i]) > 0.01:
+                y_smoothed += [eva]
+            else: y_smoothed += [y[i]]
+            
+    return y_smoothed
+
+def my_filt2(x, y):
+    evals = []
+    n = len(y)
+    for i in range(n-1):
+        sp = CubicSpline(np.concatenate((x[:i],x[i+1:])), np.concatenate((y[:i],y[i+1:])))
+        eval = sp(x[i])
+        evals += [eval]
+    sp = CubicSpline(x[:-1], y[:-1])
+    evals += [sp(x[n-1])]
+    diff = abs(evals-y)
+    max_ind = np.argmax(diff)
+    y_smoothed = y
+    y_smoothed[max_ind] = evals[max_ind]
+    return y_smoothed
+
+from numpy.polynomial import Chebyshev
+def my_filt3(x, y, order):
+    evals = []
+    n = len(y)
+    for i in range(n-1):
+        sp = Chebyshev.fit(np.concatenate((x[:i],x[i+1:])), np.concatenate((y[:i],y[i+1:])), order)
+        eval = sp(x[i])
+        evals += [eval]
+    sp = Chebyshev.fit(x[:-1], y[:-1], order)
+    #evals += [sp(x[n-1])]
+    evals += [y[n-1]]
+    diff = abs(evals-y)
+    max_ind = np.argmax(diff)
+    y_smoothed = y
+    y_smoothed[max_ind] = evals[max_ind]
+    return y_smoothed
+
+from numpy.polynomial import Chebyshev
+def my_filt4(x, y, order):
+    evals = []
+    n = len(y)
+    for i in range(n-1):
+        sp = Chebyshev.fit(np.concatenate((x[:i],x[i+1:])), np.concatenate((y[:i],y[i+1:])), order)
+        eval = sp(x[i])
+        evals += [eval]
+    sp = Chebyshev.fit(x[:-1], y[:-1], order)
+    #evals += [sp(x[n-1])]
+    evals += [y[n-1]]
+    diff = abs(evals-y)
+    max_ind = np.argmax(diff)
+    y_smoothed = y
+    y_smoothed[max_ind] = evals[max_ind]
+    return y_smoothed
+
+def diff_filt(y, y_smoothed):
+    dist = abs(y - y_smoothed)
+    return sum(dist)
+    
+
 if args.DoSmoothing == True:
     for Item in DataList:
         x = RawData[Item]["Data"]['x']
+        dist = []
         for i, I in enumerate(DesignIndex):
             y = RawPrediction[Item]['Prediction'][i,:]
-            if len(x) > 7:
-                RawPrediction[Item]['Prediction'][i,:] = non_uniform_savgol(x, y, 7, 1)
-            elif len(x) > 5:
-                RawPrediction[Item]['Prediction'][i,:] = non_uniform_savgol(x, y, 5, 1)
-            elif len(x) > 3:
-                RawPrediction[Item]['Prediction'][i,:] = non_uniform_savgol(x, y, 3, 1)
+            #RawPrediction[Item]['Prediction'][i,:] = spline_int(x, y)
+            #RawPrediction[Item]['Prediction'][i,:] = kernel_reg(x, y)
+            #if len(x) > 7:
+            #    RawPrediction[Item]['Prediction'][i,:] = non_uniform_savgol(x, y, 5, 3)
+            #elif len(x) > 5:
+            #    RawPrediction[Item]['Prediction'][i,:] = non_uniform_savgol(x, y, 3, 2)
+            #elif len(x) > 3:
+            #    RawPrediction[Item]['Prediction'][i,:] = non_uniform_savgol(x, y, 2, 1)
+            #RawPrediction[Item]['Prediction'][i,:] = my_filt3(x, y, 3)
+            y_smoothed = non_uniform_savgol(x, y, 3, 1)
+            dist+=[diff_filt(y, y_smoothed)]
+            RawPrediction[Item]['Prediction'][i,:] = y_smoothed
+            #RawPrediction[Item]['Prediction'][i,:] = lowess_filt(x, y)[:, 1]
     Tag = Tag + "_Smoothed"
+    print(len(dist))
+    top_10_indices = np.argsort(dist)[-20:][::-1]
+    print(', '.join(map(str, top_10_indices)))
 
+    
 
 # Now build the Good for PCA list if desired
 GoodForPCA = []
@@ -448,8 +584,9 @@ for Item in DataList:
     if "Correlation" in Setup["Data"][Item]:
         for key, value in Setup["Data"][Item]["Correlation"].items():
             SysLength[key+",high"] = value
+    #print(RawData[Item].keys(), SysLength)
     Covariance["HeavyIon"][("R_AA", Item)][("R_AA", Item)] = Reader.EstimateCovariance(RawData[Item], RawData[Item], SysLength = SysLength)
-
+    
 # Assign data to the dictionary
 AllData["design"] = RawDesign["Design"]
 AllData['designindex'] = DesignIndex
@@ -497,6 +634,7 @@ with open('input/default.p', 'wb') as handle:
 Path('result/' + AllData["tag"] + '/').mkdir(parents = True, exist_ok = True)
 import shutil
 shutil.copyfile('input/default.p', 'result/{}/default.p'.format(AllData['tag']))
+shutil.copyfile('input/default.p', 'input/default_tag.p'.format(AllData['tag']))
 
 
 #######################
@@ -511,7 +649,7 @@ Path('result/' + AllData["tag"] + '/plots').mkdir(parents = True, exist_ok = Tru
 # Finally, some print out and sanity check #
 ############################################
 
-print('Design shape: ' + str(RawDesign['Design'].shape))
+#print('Design shape: ' + str(RawDesign['Design'].shape))
 NDesign = RawDesign['Design'].shape[0]
 for Item in DataList:
     PredictionDimension = RawPrediction[Item]['Prediction'].shape

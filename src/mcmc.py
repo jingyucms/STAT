@@ -39,6 +39,7 @@ from .emulator import emulators
 import pickle
 from scipy.stats import multivariate_normal
 from operator import add
+import time
 
 
 def cov(
@@ -248,7 +249,7 @@ class Chain:
     system designs have the same parameters and ranges (except for the norms).
 
     """
-    def __init__(self, path=workdir / 'cache' / 'mcmc_chain.hdf'):
+    def __init__(self, path=workdir / 'cache' / 'mcmc_chain.h5'):
         self.path = path
         self.path.parent.mkdir(exist_ok=True)
 
@@ -363,7 +364,7 @@ class Chain:
         This model sys error parameter is not by default implemented.
 
         """
-        X = np.array(X, copy=False, ndmin=2)
+        X = np.array(X, copy=True, ndmin=2)
 
         lp = np.zeros(X.shape[0])
 
@@ -377,10 +378,6 @@ class Chain:
                 extra_std = X[inside, -1]
             else:
                 extra_std = 0.0
-
-            # print("X")
-            # print(X)
-            # print(extra_std)
 
             pred = self._predict(
                 X[inside], return_cov=True, extra_std=extra_std
@@ -396,24 +393,13 @@ class Chain:
 
                 model_Y, model_cov = pred[sys]
 
-                # print("Meow")
-                # print(cov[1,:,:])
-
                 # copy predictive mean and covariance into allocated arrays
                 for obs1, subobs1, slc1 in self._slices[sys]:
                     dY[:, slc1] = model_Y[obs1][subobs1]
                     for obs2, subobs2, slc2 in self._slices[sys]:
                         cov1[:, slc1, slc2] += model_cov[(obs1, subobs1), (obs2, subobs2)] * self.model_cov_modifier
 
-                # print("Meow2")
-                # print(cov[1,:,:])
-
-                # subtract expt data from model data
-                # print(sys)
-                # print("Y", dY[:])
-                # print("Exp", self._expt_y[sys])
                 dY[:] = self._expt_y[sys] * (1 + self.data_c_factor * self._expt_c[sys]) - dY[:]
-                # print("DY", dY[:])
 
                 # add expt cov to model cov
                 cov1[:] += self._expt_cov[sys]
@@ -428,10 +414,7 @@ class Chain:
                     lp[inside] += list(map(add,
                         list([x * self.model_cov_factor for x in list(map(loglike, dY, cov1, ltype))]),
                         list([x * (1 - self.model_cov_factor) for x in list(map(loglike, dY, cov0, ltype))])))
-
-                # print(list(map(mvn_loglike, dY, cov1)))
-                # print(list(map(mvn_loglike, dY, cov0)))
-
+                    
             # add prior for extra_std (model sys error)
             if model_sys_error:
                 lp[inside] += 2*np.log(extra_std) - extra_std / extra_std_prior_scale
@@ -487,6 +470,8 @@ class Chain:
                 burn = False
                 nwalkers = dset.shape[0]
 
+            start = time.time()
+
             self.set_mcmc_variables(model_cov_modifier = model_cov_modifier,
                 model_cov_factor = model_cov_factor,
                 likelihood_type = likelihood_type,
@@ -530,6 +515,25 @@ class Chain:
 
             sampler.run_mcmc(X0, nsteps, status=status)
 
+            try:
+                autocorr_time = sampler.get_autocorr_time()
+            except emcee.autocorr.AutocorrError as e:
+                print(f"Autocorrelation time could not be reliably estimated: {e}")
+                # Handle the case, perhaps use a default value or continue with a warning
+                autocorr_time = None
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                autocorr_time = None
+
+            if autocorr_time is not None:
+                print(f"Estimated autocorrelation time: {autocorr_time}")
+            else:
+                print("Proceeding with default behavior due to autocorrelation estimation issue.")
+
+            end = time.time()
+
+            logging.info('processing time: %s seconds', end - start)
+            
             logging.info('writing chain to file')
             dset.resize(dset.shape[1] + nsteps, 1)
             dset[:, -nsteps:, :] = sampler.chain

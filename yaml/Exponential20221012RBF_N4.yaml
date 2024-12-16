@@ -1,4 +1,5 @@
-BaseDirectory: 'input/STAT20221012Exponential/'
+# BaseDirectory: 'input/STAT20221012Exponential/'
+# BaseDirectory: 'input/STAT20221007Exponential/2022-10-03-exponential/'
 Tag: 'STAT20221012ExponentialRBF_N4'
 Emulator:
   NPC: 4
