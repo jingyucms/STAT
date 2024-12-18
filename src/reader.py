@@ -69,7 +69,7 @@ def ReadData(FileName):
                     Result['ExtraComment'] = []
                 Result["ExtraComment"].append(Line[2:])
 
-    if(Result['Version'] not in ['1.0', '2.0']):
+    if(Result['Version'] not in ['1.0', '2.0', '1.1']):
         raise AssertionError('Bad file version number while reading design points')
 
     XMode = ''
