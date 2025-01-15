@@ -139,8 +139,8 @@ class Emulator:
        # ptp = maxes - mins
 
         ptp = design.max - design.min
-        print('ptp', ptp)
-        print("noise", noise)
+        #print('ptp', ptp)
+        #print("noise", noise)
 
         noise0 = 0.5**2
         noisemin = 0.0001**2
@@ -316,6 +316,9 @@ class Emulator:
         Y = np.dot(Z, self._trans_matrix[:Z.shape[-1]])
         Y += self.scaler.mean_
 
+        #print("Y", type(Y), Y.shape)
+        #print(self._slices)
+
         return {
             obs: {
                 subobs: Y[..., s]
@@ -363,16 +366,14 @@ class Emulator:
         """
         gp_mean = [gp.predict(X, return_cov=return_cov) for gp in self.gps]
 
-        #print("gp_mean",gp_mean)
-
         if return_cov:
             gp_mean, gp_cov = zip(*gp_mean)
+
+        #print("gp_mean",gp_mean.shape)
 
         mean = self._inverse_transform(
             np.concatenate([m[:, np.newaxis] for m in gp_mean], axis=1)
         )
-
-        #print("mean",mean)
 
         if return_cov:
             # Build array of the GP predictive variances at each sample point.
@@ -474,7 +475,7 @@ if __name__ == '__main__':
     for s in kwargs.pop('systems'):
         emu = Emulator.from_cache(s, **kwargs)
 
-        print(s)
+        #print(s)
         print('{} PCs explain {:.5f} of variance'.format(
             emu.npc,
             emu.pca.explained_variance_ratio_[:emu.npc].sum()

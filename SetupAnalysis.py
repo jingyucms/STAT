@@ -200,13 +200,13 @@ if 'PoorManQALimit' in Setup['Design']:
         zscores[Item]=stats.zscore(RawPrediction[Item]['Prediction'], axis=0)
     for I in DesignIndex:
         for Item in DataList:
-            if I >= minimum or max(RawPrediction[Item]['Prediction'][I,:]) > Setup['Design']['PoorManQALimit'] or any(np.abs(zscores[Item][I,:]) > Setup['Design']['PoorManQALimitZScore']):
-            #if I >= minimum or max(RawPrediction[Item]['Prediction'][I,:]) > Setup['Design']['PoorManQALimit']:
+            #if I >= minimum or max(RawPrediction[Item]['Prediction'][I,:]) > Setup['Design']['PoorManQALimit'] or any(np.abs(zscores[Item][I,:]) > Setup['Design']['PoorManQALimitZScore']):
+            if I >= minimum or max(RawPrediction[Item]['Prediction'][I,:]) > Setup['Design']['PoorManQALimit']:
                 ListToDelete.append(I)
                 break
     ListToDelete.sort()
 print(len(ListToDelete))
-ListToDelete = [227, 228, 229]
+#ListToDelete = [227, 228, 229]
     
 RawDesign['Design'] = np.delete(RawDesign['Design'], ListToDelete, axis = 0)
 DesignIndex = np.delete(range(0, InputDesignCount), ListToDelete)

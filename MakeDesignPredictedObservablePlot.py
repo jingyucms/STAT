@@ -25,6 +25,7 @@ Emulator = emulator.Emulator.from_cache_custom(system='HeavyIon',path=f'result/{
 Examples = AllData["design"]
 
 TempPrediction = {"HeavyIon": Emulator.predict(Examples)}
+print('Design', Examples.shape, TempPrediction['HeavyIon'].keys())
 
 PrePrediction = AllData["model"]
 
@@ -52,6 +53,7 @@ for s2 in range(0, RC * CC):
     S1 = AllData["systems"][0]
     O  = AllData["observables"][0][0]
     S2 = AllData["observables"][0][1][s2]
+    print('S2', S2)
 
     if "JetDz" in S2 and "ATLAS" in S2:
         axes[ax][ay].set_xlabel(r"z")
