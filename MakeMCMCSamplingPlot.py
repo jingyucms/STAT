@@ -17,7 +17,7 @@ if args.Tag != "": tag = args.Tag
 import src
 src.Initialize()
 from src import mcmc
-chain = mcmc.Chain(path = Path(f'result/{tag}/mcmc_chain.hdf'))
+chain = mcmc.Chain(path = Path(f'result/{tag}/mcmc_chain.h5'))
 MCMCSamples = chain.load()
 
 import pickle
@@ -38,12 +38,12 @@ with chain.dataset() as d:
     print("Number of steps:", S)
     print("Number of paramters:", N)
     
-    figure, axes = plt.subplots(figsize = (18, 2 * N), ncols = 2, nrows = N)
+    figure, axes = plt.subplots(figsize = (18, 2 * N), ncols = 1, nrows = N)
     for i, ax in enumerate(axes):
-        for j in range(0, 1):
-            #ax.plot(range(0, S, T), d[j, ::T, i], alpha = A)
-            ax[0].plot(range(0, S, T), d[j, ::T, i])
-        ax[1].hist(d[82, :, i], bins=50)
+        for j in range(0, W):
+            ax.plot(range(0, S, T), d[j, ::T, i], alpha = A)
+            #ax[0].plot(range(0, S, T), d[j, ::T, i])
+        #ax[1].hist(d[82, :, i], bins=50)
     plt.tight_layout()
     tag = AllData['tag']
     plt.savefig(f'result/{tag}/plots/MCMCSamples.pdf', dpi = 192)
