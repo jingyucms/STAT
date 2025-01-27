@@ -36,7 +36,7 @@ from src import lazydict, emulator
 Emulator = emulator.Emulator.from_cache('HeavyIon')
 
 from src import mcmc
-chain = mcmc.Chain(path = Path(f'result/{tag}/mcmc_chain.hdf'))
+chain = mcmc.Chain(path = Path(f'result/{tag}/mcmc_chain.h5'))
 MCMCSamples = chain.load()
 
 Examples = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 500), :]

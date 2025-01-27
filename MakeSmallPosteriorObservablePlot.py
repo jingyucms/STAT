@@ -7,17 +7,25 @@ import yaml
 from pathlib import Path
 
 import pickle
-AllData = {}
-with open('input/default.p', 'rb') as handle:
-    AllData = pickle.load(handle)
 
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--Config", help = "plot configuration file", type = str, default = "yaml/PlotConfig.yaml")
 parser.add_argument("--Alternate", help = "whether to plot a second collection", type = str, default = '')
 parser.add_argument('--AlternateLabel', help = 'label for alternate collection', type = str, default = '')
+parser.add_argument('--Tag', help = 'tag for the nominal', type = str, default = '')
 parser.add_argument('--Suffix', help = 'suffix to add to file name', type = str, default = '')
 args = parser.parse_args()
+
+AllDataTag = {}
+with open('input/default_tag.p', 'rb') as handle:
+    AllDataTag = pickle.load(handle)
+tag = AllDataTag["tag"]
+if args.Tag != "": tag = args.Tag
+
+AllData = {}
+with open('input/default.p', 'rb') as handle:
+    AllData = pickle.load(handle)
 
 DoAlternate = False
 if args.Alternate != '':
@@ -35,7 +43,7 @@ from src import lazydict, emulator
 Emulator = emulator.Emulator.from_cache('HeavyIon')
 
 from src import mcmc
-chain = mcmc.Chain()
+chain = mcmc.Chain(path = Path(f'result/{tag}/mcmc_chain.h5'))
 MCMCSamples = chain.load()
 
 Examples = MCMCSamples[ np.random.choice(range(len(MCMCSamples)), 500), :]
