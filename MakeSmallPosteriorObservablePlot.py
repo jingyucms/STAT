@@ -39,7 +39,7 @@ fontsize = 22
 import src
 src.Initialize()
 
-from src import lazydict, emulator
+from src import lazydict, emulator1
 Emulator = emulator.Emulator.from_cache('HeavyIon')
 
 from src import mcmc
